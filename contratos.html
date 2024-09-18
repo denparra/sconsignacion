@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contrato de Consignación</title>
+    <style>
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #333;
+            padding: 20px;
+            line-height: 1.4;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #f4f4f4;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        header img {
+            max-width: 200px;
+            margin-bottom: 10px;
+        }
+        h1 {
+            color: #cc0000;
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+        h2 {
+            color: #555;
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #cc0000;
+            padding-bottom: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        table th, table td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .terms ul {
+            list-style-type: disc;
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <img src="https://www.queirolo.cl/img/logo.png?2" alt="Logo Empresa">
+        <h1>CONTRATO DE CONSIGNACION</h1>
+        <p>CONSECIONARIA AUTORECENTE SPA RUT 77.194.213K</p>
+        <p>CASA MATRIZ: Av. LAS CONDES 12461 LOCAL 4A, LAS CONDES, SANTIAGO.</p>
+    </header>
+
+    <h2>Datos del Vehículo</h2>
+    <table class="four-columns">
+        <tr>
+            <th>Vehículo</th><td id="vehiculo"></td>
+            <th>Marca</th><td id="marca"></td>
+        </tr>
+        <tr>
+            <th>Modelo</th><td id="modelo"></td>
+            <th>Año</th><td id="anio"></td>
+        </tr>
+        <tr>
+            <th>Chasis</th><td id="chasis"></td>
+            <th>Motor</th><td id="num_motor"></td>
+        </tr>
+        <tr>
+            <th>Patente</th><td id="patente"></td>
+            <th>Kilometraje</th><td id="kilometraje"></td>
+        </tr>
+        <tr>
+            <th>Permiso de Circulación</th><td id="permiso_circulacion"></td>
+            <th>Revisión Técnica</th><td id="revision_tecnica"></td>
+        </tr>
+        <tr>
+            <th>Seguro Obligatorio</th><td id="seguro_obligatorio"></td>
+            <th>Precio de Publicación</th><td id="precio_publicacion"></td>
+        </tr>
+    </table>
+
+    <h2>Datos del Cliente</h2>
+    <table class="four-columns">
+        <tr>
+            <th>RUT</th><td id="rut_cliente"></td>
+            <th>Nombre y Apellido</th><td id="nombre_apellido"></td>
+        </tr>
+        <tr>
+            <th>Dirección</th><td id="direccion"></td>
+            <th>Teléfono</th><td id="telefono"></td>
+        </tr>
+        <tr>
+            <th>Correo</th><td id="correo"></td>
+            <th>Fecha</th><td id="fecha_consignacion"></td>
+        </tr>
+    </table>
+
+    <h2>Términos y Condiciones</h2>
+    <div class="terms">
+        <ul>
+            <li>El monto a liquidar por la venta será acordado en el cierre de la transacción, confirmado por escrito.</li>
+            <li>En caso de retiro del vehículo antes de la venta, se aplicará una tarifa de $75,000.</li>
+            <li>El vendedor asume la responsabilidad de cualquier multa sobre el vehículo.</li>
+            <li>El mandatario no es responsable por daños derivados de fuerza mayor no cubiertos por el seguro.</li>
+            <li>La comisión por venta es del 5% sobre el precio de venta, con un mínimo de $500,000 más IVA.</li>
+            <li>El pago se realizará dentro de 7 días hábiles posteriores a la venta del vehículo.</li>
+            <li>El vendedor asegura que el kilometraje del vehículo no ha sido alterado.</li>
+            <li>El vehículo será inspeccionado antes de recibirlo. Cualquier daño deberá ser reparado.</li>
+        </ul>
+    </div>
+
+    <a href="#" class="btn" id="generate-pdf">Generar PDF</a>
+
+    <!-- jsPDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+
+    <script>
+        // Obtener parámetros de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+
+        document.getElementById('vehiculo').innerText = urlParams.get('vehiculo');
+        document.getElementById('marca').innerText = urlParams.get('marca');
+        document.getElementById('modelo').innerText = urlParams.get('modelo');
+        document.getElementById('anio').innerText = urlParams.get('anio');
+        document.getElementById('chasis').innerText = urlParams.get('chasis');
+        document.getElementById('num_motor').innerText = urlParams.get('num_motor');
+        document.getElementById('patente').innerText = urlParams.get('patente');
+        document.getElementById('kilometraje').innerText = urlParams.get('kilometraje');
+        document.getElementById('permiso_circulacion').innerText = urlParams.get('permiso_circulacion');
+        document.getElementById('revision_tecnica').innerText = urlParams.get('revision_tecnica');
+        document.getElementById('seguro_obligatorio').innerText = urlParams.get('seguro_obligatorio');
+        document.getElementById('precio_publicacion').innerText = urlParams.get('precio_publicacion');
+        document.getElementById('rut_cliente').innerText = urlParams.get('rut_cliente');
+        document.getElementById('nombre_apellido').innerText = urlParams.get('nombre_apellido');
+        document.getElementById('direccion').innerText = urlParams.get('direccion');
+        document.getElementById('telefono').innerText = urlParams.get('telefono');
+        document.getElementById('correo').innerText = urlParams.get('correo');
+        document.getElementById('fecha_consignacion').innerText = urlParams.get('fecha_consignacion');
+
+       // Generar PDF usando jsPDF
+    document.getElementById('generate-pdf').addEventListener('click', function() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.text('Contrato de Consignación', 10, 10);
+        doc.text('Datos del Vehículo', 10, 20);
+        doc.text(`Vehículo: ${urlParams.get('vehiculo')}`, 10, 30);
+        doc.text(`Marca: ${urlParams.get('marca')}`, 10, 40);
+        doc.text(`Modelo: ${urlParams.get('modelo')}`, 10, 50);
+        doc.text(`Año: ${urlParams.get('anio')}`, 10, 60);
+        doc.text(`Chasis: ${urlParams.get('chasis')}`, 10, 70);
+        doc.text(`Motor: ${urlParams.get('num_motor')}`, 10, 80);
+        doc.text(`Patente: ${urlParams.get('patente')}`, 10, 90);
+        doc.text(`Kilometraje: ${urlParams.get('kilometraje')}`, 10, 100);
+        doc.text(`Permiso de Circulación: ${urlParams.get('permiso_circulacion')}`, 10, 110);
+        doc.text(`Revisión Técnica: ${urlParams.get('revision_tecnica')}`, 10, 120);
+        doc.text(`Seguro Obligatorio: ${urlParams.get('seguro_obligatorio')}`, 10, 130);
+        doc.text(`Precio de Publicación: ${urlParams.get('precio_publicacion')}`, 10, 140);
+
+        doc.text('Datos del Cliente', 10, 150);
+        doc.text(`RUT: ${urlParams.get('rut_cliente')}`, 10, 160);
+        doc.text(`Nombre y Apellido: ${urlParams.get('nombre_apellido')}`, 10, 170);
+        doc.text(`Dirección: ${urlParams.get('direccion')}`, 10, 180);
+        doc.text(`Teléfono: ${urlParams.get('telefono')}`, 10, 190);
+        doc.text(`Correo: ${urlParams.get('correo')}`, 10, 200);
+        doc.text(`Fecha de Consignación: ${urlParams.get('fecha_consignacion')}`, 10, 210);
+
+        // Descargar el PDF
+        doc.save('contrato-consignacion.pdf');
+    });
+</script>
