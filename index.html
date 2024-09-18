@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Consignación</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center my-4">Formulario de Consignación</h1>
+        <form action="/agregar-consignacion" method="POST">
+            <!-- Sección de Datos del Cliente -->
+            <div class="card my-3">
+                <div class="card-header">Datos del Cliente</div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="nombre_apellido">Nombre y Apellido:</label>
+                        <input type="text" class="form-control" id="nombre_apellido" name="nombre_apellido" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="rut_cliente">RUT:</label>
+                        <input type="text" class="form-control" id="rut_cliente" name="rut_cliente" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="direccion">Dirección:</label>
+                        <input type="text" class="form-control" id="direccion" name="direccion">
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono">Teléfono:</label>
+                        <input type="tel" class="form-control" id="telefono" name="telefono">
+                    </div>
+                    <div class="form-group">
+                        <label for="correo">Correo Electrónico:</label>
+                        <input type="email" class="form-control" id="correo" name="correo">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de Datos del Vehículo -->
+            <div class="card my-3">
+                <div class="card-header">Datos del Vehículo</div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="vehiculo">Tipo de Vehículo:</label>
+                        <input type="text" class="form-control" id="vehiculo" name="vehiculo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="marca">Marca:</label>
+                        <input type="text" class="form-control" id="marca" name="marca" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="modelo">Modelo:</label>
+                        <input type="text" class="form-control" id="modelo" name="modelo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="anio">Año:</label>
+                        <input type="number" class="form-control" id="anio" name="anio" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="chasis">Número de Chasis:</label>
+                        <input type="text" class="form-control" id="chasis" name="chasis" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="num_motor">Número de Motor:</label>
+                        <input type="text" class="form-control" id="num_motor" name="num_motor" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="patente">Patente:</label>
+                        <input type="text" class="form-control" id="patente" name="patente" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="kilometraje">Kilometraje:</label>
+                        <input type="number" class="form-control" id="kilometraje" name="kilometraje" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="permiso_circulacion">Permiso de Circulación:</label>
+                        <input type="text" class="form-control" id="permiso_circulacion" name="permiso_circulacion" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="revision_tecnica">Revisión Técnica y Gases:</label>
+                        <input type="text" class="form-control" id="revision_tecnica" name="revision_tecnica" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="seguro_obligatorio">Seguro Obligatorio:</label>
+                        <input type="text" class="form-control" id="seguro_obligatorio" name="seguro_obligatorio" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de Consignación -->
+            <div class="card my-3">
+                <div class="card-header">Detalles de la Consignación</div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="fecha_consignacion">Fecha de Consignación:</label>
+                        <input type="date" class="form-control" id="fecha_consignacion" name="fecha_consignacion" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="precio_publicacion">Precio de Publicación:</label>
+                        <input type="number" class="form-control" id="precio_publicacion" name="precio_publicacion" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tipo_venta">Tipo de Venta:</label>
+                        <input type="text" class="form-control" id="tipo_venta" name="tipo_venta" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botón de envío -->
+            <button type="submit" class="btn btn-primary btn-block">Guardar Consignación</button>
+        </form>
+
+        <hr>
+
+        <!-- Enlace para consultar consignaciones -->
+        <a href="/consultas-consignaciones" class="btn btn-secondary btn-block">Consultar Consignaciones</a>
+    
+
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
