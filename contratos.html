@@ -4,62 +4,97 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contrato de Consignación</title>
+    <!-- Estilos Mejorados -->
     <style>
         body {
             font-family: 'Helvetica', 'Arial', sans-serif;
             color: #333;
             padding: 20px;
-            line-height: 1.4;
+            line-height: 1.6;
             max-width: 800px;
             margin: 0 auto;
-            background-color: #f4f4f4;
+            background-color: #ffffff;
         }
         header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
         header img {
-            max-width: 200px;
+            max-width: 250px;
             margin-bottom: 10px;
         }
         h1 {
             color: #cc0000;
-            font-size: 22px;
+            font-size: 26px;
             margin-bottom: 5px;
         }
         h2 {
             color: #555;
-            font-size: 18px;
+            font-size: 22px;
             margin-bottom: 15px;
-            border-bottom: 1px solid #cc0000;
+            border-bottom: 2px solid #cc0000;
             padding-bottom: 5px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         table th, table td {
-            padding: 8px;
+            padding: 10px;
             text-align: left;
             border: 1px solid #ddd;
-            font-size: 14px;
+            font-size: 16px;
         }
         .btn {
             display: inline-block;
-            padding: 10px 20px;
-            font-size: 16px;
+            padding: 12px 25px;
+            font-size: 18px;
             color: #fff;
             background-color: #007bff;
             border: none;
             border-radius: 5px;
             text-decoration: none;
             text-align: center;
-            margin: 20px 0;
+            margin: 20px 10px 0 0;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #0056b3;
         }
         .terms ul {
             list-style-type: disc;
             padding-left: 20px;
+        }
+        .terms li {
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        /* Estilos Responsivos */
+        @media (max-width: 600px) {
+            body {
+                padding: 15px;
+            }
+            header img {
+                max-width: 200px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+            h2 {
+                font-size: 20px;
+            }
+            table th, table td {
+                font-size: 14px;
+                padding: 8px;
+            }
+            .btn {
+                font-size: 16px;
+                padding: 10px 20px;
+            }
+            .terms li {
+                font-size: 14px;
+            }
         }
     </style>
 </head>
@@ -67,7 +102,7 @@
 
     <header>
         <img src="https://www.queirolo.cl/img/logo.png?2" alt="Logo Empresa">
-        <h1>CONTRATO DE CONSIGNACION</h1>
+        <h1>CONTRATO DE CONSIGNACIÓN</h1>
         <p>CONSECIONARIA AUTORECENTE SPA RUT 77.194.213K</p>
         <p>CASA MATRIZ: Av. LAS CONDES 12461 LOCAL 4A, LAS CONDES, SANTIAGO.</p>
     </header>
@@ -97,6 +132,9 @@
         <tr>
             <th>Seguro Obligatorio</th><td id="seguro_obligatorio"></td>
             <th>Precio de Publicación</th><td id="precio_publicacion"></td>
+        </tr>
+        <tr>
+            <th>Tipo de Venta</th><td id="tipo_venta"></td>
         </tr>
     </table>
 
@@ -130,7 +168,11 @@
         </ul>
     </div>
 
-    <a href="#" class="btn" id="generate-pdf">Generar PDF</a>
+    <!-- Botones -->
+    <div style="margin-top: 30px;">
+        <a href="#" class="btn" id="generate-pdf">Generar PDF</a>
+        <a href="/" class="btn">Volver al Formulario</a>
+    </div>
 
     <!-- jsPDF Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
@@ -151,6 +193,7 @@
         document.getElementById('revision_tecnica').innerText = urlParams.get('revision_tecnica');
         document.getElementById('seguro_obligatorio').innerText = urlParams.get('seguro_obligatorio');
         document.getElementById('precio_publicacion').innerText = urlParams.get('precio_publicacion');
+        document.getElementById('tipo_venta').innerText = urlParams.get('tipo_venta');
         document.getElementById('rut_cliente').innerText = urlParams.get('rut_cliente');
         document.getElementById('nombre_apellido').innerText = urlParams.get('nombre_apellido');
         document.getElementById('direccion').innerText = urlParams.get('direccion');
@@ -158,35 +201,85 @@
         document.getElementById('correo').innerText = urlParams.get('correo');
         document.getElementById('fecha_consignacion').innerText = urlParams.get('fecha_consignacion');
 
-       // Generar PDF usando jsPDF
-    document.getElementById('generate-pdf').addEventListener('click', function() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
+        // Generar PDF usando jsPDF
+        document.getElementById('generate-pdf').addEventListener('click', function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
 
-        doc.text('Contrato de Consignación', 10, 10);
-        doc.text('Datos del Vehículo', 10, 20);
-        doc.text(`Vehículo: ${urlParams.get('vehiculo')}`, 10, 30);
-        doc.text(`Marca: ${urlParams.get('marca')}`, 10, 40);
-        doc.text(`Modelo: ${urlParams.get('modelo')}`, 10, 50);
-        doc.text(`Año: ${urlParams.get('anio')}`, 10, 60);
-        doc.text(`Chasis: ${urlParams.get('chasis')}`, 10, 70);
-        doc.text(`Motor: ${urlParams.get('num_motor')}`, 10, 80);
-        doc.text(`Patente: ${urlParams.get('patente')}`, 10, 90);
-        doc.text(`Kilometraje: ${urlParams.get('kilometraje')}`, 10, 100);
-        doc.text(`Permiso de Circulación: ${urlParams.get('permiso_circulacion')}`, 10, 110);
-        doc.text(`Revisión Técnica: ${urlParams.get('revision_tecnica')}`, 10, 120);
-        doc.text(`Seguro Obligatorio: ${urlParams.get('seguro_obligatorio')}`, 10, 130);
-        doc.text(`Precio de Publicación: ${urlParams.get('precio_publicacion')}`, 10, 140);
+            doc.setFontSize(16);
+            doc.text('Contrato de Consignación', 10, 20);
 
-        doc.text('Datos del Cliente', 10, 150);
-        doc.text(`RUT: ${urlParams.get('rut_cliente')}`, 10, 160);
-        doc.text(`Nombre y Apellido: ${urlParams.get('nombre_apellido')}`, 10, 170);
-        doc.text(`Dirección: ${urlParams.get('direccion')}`, 10, 180);
-        doc.text(`Teléfono: ${urlParams.get('telefono')}`, 10, 190);
-        doc.text(`Correo: ${urlParams.get('correo')}`, 10, 200);
-        doc.text(`Fecha de Consignación: ${urlParams.get('fecha_consignacion')}`, 10, 210);
+            doc.setFontSize(14);
+            doc.text('Datos del Vehículo', 10, 30);
 
-        // Descargar el PDF
-        doc.save('contrato-consignacion.pdf');
-    });
-</script>
+            doc.setFontSize(12);
+            let yPosition = 40;
+            const lineHeight = 7;
+
+            const addText = (text) => {
+                doc.text(text, 10, yPosition);
+                yPosition += lineHeight;
+                if (yPosition > 280) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+            };
+
+            addText(`Vehículo: ${urlParams.get('vehiculo')}`);
+            addText(`Marca: ${urlParams.get('marca')}`);
+            addText(`Modelo: ${urlParams.get('modelo')}`);
+            addText(`Año: ${urlParams.get('anio')}`);
+            addText(`Chasis: ${urlParams.get('chasis')}`);
+            addText(`Motor: ${urlParams.get('num_motor')}`);
+            addText(`Patente: ${urlParams.get('patente')}`);
+            addText(`Kilometraje: ${urlParams.get('kilometraje')}`);
+            addText(`Permiso de Circulación: ${urlParams.get('permiso_circulacion')}`);
+            addText(`Revisión Técnica: ${urlParams.get('revision_tecnica')}`);
+            addText(`Seguro Obligatorio: ${urlParams.get('seguro_obligatorio')}`);
+            addText(`Precio de Publicación: ${urlParams.get('precio_publicacion')}`);
+            addText(`Tipo de Venta: ${urlParams.get('tipo_venta')}`);
+            yPosition += lineHeight;
+
+            doc.setFontSize(14);
+            addText('Datos del Cliente');
+            yPosition += lineHeight;
+
+            doc.setFontSize(12);
+            addText(`RUT: ${urlParams.get('rut_cliente')}`);
+            addText(`Nombre y Apellido: ${urlParams.get('nombre_apellido')}`);
+            addText(`Dirección: ${urlParams.get('direccion')}`);
+            addText(`Teléfono: ${urlParams.get('telefono')}`);
+            addText(`Correo: ${urlParams.get('correo')}`);
+            addText(`Fecha de Consignación: ${urlParams.get('fecha_consignacion')}`);
+            yPosition += lineHeight;
+
+            doc.setFontSize(14);
+            addText('Términos y Condiciones');
+            yPosition += lineHeight;
+
+            doc.setFontSize(11);
+            const terms = [
+                'El monto a liquidar por la venta será acordado en el cierre de la transacción, confirmado por escrito.',
+                'En caso de retiro del vehículo antes de la venta, se aplicará una tarifa de $75,000.',
+                'El vendedor asume la responsabilidad de cualquier multa sobre el vehículo.',
+                'El mandatario no es responsable por daños derivados de fuerza mayor no cubiertos por el seguro.',
+                'La comisión por venta es del 5% sobre el precio de venta, con un mínimo de $500,000 más IVA.',
+                'El pago se realizará dentro de 7 días hábiles posteriores a la venta del vehículo.',
+                'El vendedor asegura que el kilometraje del vehículo no ha sido alterado.',
+                'El vehículo será inspeccionado antes de recibirlo. Cualquier daño deberá ser reparado.'
+            ];
+
+            terms.forEach((term, index) => {
+                const splitText = doc.splitTextToSize(`${index + 1}. ${term}`, 180);
+                splitText.forEach(line => {
+                    addText(line);
+                });
+                yPosition += lineHeight * 0.5;
+            });
+
+            // Descargar el PDF
+            doc.save('contrato-consignacion.pdf');
+        });
+    </script>
+</body>
+</html>
