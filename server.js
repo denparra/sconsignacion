@@ -1,3 +1,5 @@
+// server.js
+
 const express = require('express');
 const mysql = require('mysql2');
 const bodyParser = require('body-parser');
@@ -78,11 +80,13 @@ app.post('/agregar-consignacion', (req, res) => {
       // Insertar datos en la tabla `consignaciones`
       const consignacionSql = `INSERT INTO consignaciones (id_cliente, id_vehiculo, fecha_consignacion, precio_publicacion, tipo_venta)
                                VALUES (?, ?, ?, ?, ?)`;
-      pool.query(consignacionSql, [clienteId, vehiculoId, fecha_consignacion, precio_publicacion, tipo_venta], (err) => {
+      pool.query(consignacionSql, [clienteId, vehiculoId, fecha_consignacion, precio_publicacion, tipo_venta], (err, result) => {
         if (err) {
           console.error('Error al insertar la consignación:', err);
           return res.status(500).send('Error al insertar la consignación');
         }
+
+        const consignacionId = result.insertId; // Obtener el ID de la consignación insertada
 
         // Enviar correo de confirmación
         const mailOptions = {
@@ -99,8 +103,8 @@ app.post('/agregar-consignacion', (req, res) => {
           }
           console.log('Correo enviado: ' + info.response);
 
-          // Redirigir a contratos.html con los datos pasados por la URL
-          res.redirect(`/contratos.html?vehiculo=${vehiculo}&marca=${marca}&modelo=${modelo}&anio=${anio}&chasis=${chasis}&num_motor=${num_motor}&patente=${patente}&kilometraje=${kilometraje}&permiso_circulacion=${permiso_circulacion}&revision_tecnica=${revision_tecnica}&seguro_obligatorio=${seguro_obligatorio}&precio_publicacion=${precio_publicacion}&rut_cliente=${rut_cliente}&nombre_apellido=${nombre_apellido}&direccion=${direccion}&telefono=${telefono}&correo=${correo}&fecha_consignacion=${fecha_consignacion}&tipo_venta=${tipo_venta}`);
+          // Redirigir a contratos.html con el ID de la consignación
+          res.redirect(`/contratos.html?id_consignacion=${consignacionId}`);
         });
       });
     });
@@ -129,73 +133,123 @@ app.get('/consultas-consignaciones', (req, res) => {
   sql += ` ORDER BY consignaciones.fecha_consignacion DESC LIMIT ? OFFSET ?`;
 
   // Ejecutar la consulta, pasando el mes si se especificó
-const queryParams = filtroMes ? [filtroMes, limit, offset] : [limit, offset];
+  const queryParams = filtroMes ? [filtroMes, limit, offset] : [limit, offset];
 
-pool.query(sql, queryParams, (err, results) => {
-  if (err) {
-    console.error('Error al consultar las consignaciones:', err);
-    return res.status(500).send('Error al consultar las consignaciones');
-  }
+  pool.query(sql, queryParams, (err, results) => {
+    if (err) {
+      console.error('Error al consultar las consignaciones:', err);
+      return res.status(500).send('Error al consultar las consignaciones');
+    }
 
-  let responseHTML = `<h1>Listado de Consignaciones</h1>
-                      <form method="GET" action="/consultas-consignaciones">
-                        <label for="mes">Filtrar por mes:</label>
-                        <select name="mes" id="mes">
-                          <option value="">Todos</option>
-                          <option value="1">Enero</option>
-                          <option value="2">Febrero</option>
-                          <option value="3">Marzo</option>
-                          <option value="4">Abril</option>
-                          <option value="5">Mayo</option>
-                          <option value="6">Junio</option>
-                          <option value="7">Julio</option>
-                          <option value="8">Agosto</option>
-                          <option value="9">Septiembre</option>
-                          <option value="10">Octubre</option>
-                          <option value="11">Noviembre</option>
-                          <option value="12">Diciembre</option>
-                        </select>
-                        <button type="submit" class="btn btn-primary">Filtrar</button>
-                      </form>
-                      <table border="1" cellpadding="5" class="mt-4">
-                        <tr>
-                          <th>ID Consignación</th>
-                          <th>Cliente</th>
-                          <th>Vehículo</th>
-                          <th>Patente</th>
-                          <th>Fecha</th>
-                          <th>Precio</th>
-                          <th>Tipo de Venta</th>
-                        </tr>`;
+    let responseHTML = `<h1>Listado de Consignaciones</h1>
+                        <form method="GET" action="/consultas-consignaciones">
+                          <label for="mes">Filtrar por mes:</label>
+                          <select name="mes" id="mes">
+                            <option value="">Todos</option>
+                            <option value="1">Enero</option>
+                            <option value="2">Febrero</option>
+                            <option value="3">Marzo</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Mayo</option>
+                            <option value="6">Junio</option>
+                            <option value="7">Julio</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Septiembre</option>
+                            <option value="10">Octubre</option>
+                            <option value="11">Noviembre</option>
+                            <option value="12">Diciembre</option>
+                          </select>
+                          <button type="submit" class="btn btn-primary">Filtrar</button>
+                        </form>
+                        <table border="1" cellpadding="5" class="mt-4">
+                          <tr>
+                            <th>ID Consignación</th>
+                            <th>Cliente</th>
+                            <th>Vehículo</th>
+                            <th>Patente</th>
+                            <th>Fecha</th>
+                            <th>Precio</th>
+                            <th>Tipo de Venta</th>
+                            <th>Acciones</th>
+                          </tr>`;
 
-  results.forEach(consignacion => {
-    responseHTML += `
-      <tr>
-        <td>${consignacion.id_consignacion}</td>
-        <td>${consignacion.nombre_apellido}</td>
-        <td>${consignacion.vehiculo}</td>
-        <td>${consignacion.patente}</td>
-        <td>${consignacion.fecha_consignacion}</td>
-        <td>${consignacion.precio_publicacion}</td>
-        <td>${consignacion.tipo_venta}</td>
-      </tr>`;
+    results.forEach(consignacion => {
+      responseHTML += `
+        <tr>
+          <td>${consignacion.id_consignacion}</td>
+          <td>${consignacion.nombre_apellido}</td>
+          <td>${consignacion.vehiculo}</td>
+          <td>${consignacion.patente}</td>
+          <td>${consignacion.fecha_consignacion}</td>
+          <td>${consignacion.precio_publicacion}</td>
+          <td>${consignacion.tipo_venta}</td>
+          <td><a href="/contratos.html?id_consignacion=${consignacion.id_consignacion}">Ver Contrato</a></td>
+        </tr>`;
+    });
+
+    responseHTML += '</table>';
+
+    // Generar botones de paginación
+    const nextPage = page + 1;
+    const prevPage = page - 1;
+
+    responseHTML += `<div style="margin-top: 20px;">`;
+    if (page > 1) {
+      responseHTML += `<a href="/consultas-consignaciones?page=${prevPage}&mes=${filtroMes}" class="btn btn-primary">Página Anterior</a>`;
+    }
+    responseHTML += `<a href="/consultas-consignaciones?page=${nextPage}&mes=${filtroMes}" class="btn btn-primary" style="margin-left: 10px;">Siguiente Página</a>`;
+    responseHTML += `</div>`;
+
+    responseHTML += '<br><a href="/">Volver al formulario</a>';
+    res.send(responseHTML);
   });
+});
 
-  responseHTML += '</table>';
+// **Nueva ruta para obtener los datos de una consignación específica**
+app.get('/api/consignacion/:id', (req, res) => {
+  const idConsignacion = req.params.id;
 
-  // Generar botones de paginación
-  const nextPage = page + 1;
-  const prevPage = page - 1;
+  // Consulta para obtener los datos de la consignación, cliente y vehículo
+const sql = `SELECT 
+consignaciones.id_consignacion AS consignacion_id,
+consignaciones.fecha_consignacion,
+consignaciones.precio_publicacion,
+consignaciones.tipo_venta,
+clientes.id_cliente AS cliente_id,
+clientes.rut_cliente,
+clientes.nombre_apellido,
+clientes.direccion,
+clientes.telefono,
+clientes.correo,
+vehiculos.id_vehiculo AS vehiculo_id,
+vehiculos.vehiculo,
+vehiculos.marca,
+vehiculos.modelo,
+vehiculos.anio,
+vehiculos.chasis,
+vehiculos.num_motor,
+vehiculos.patente,
+vehiculos.kilometraje,
+vehiculos.permiso_circulacion,
+vehiculos.revision_tecnica,
+vehiculos.seguro_obligatorio
+FROM consignaciones
+JOIN clientes ON consignaciones.id_cliente = clientes.id_cliente
+JOIN vehiculos ON consignaciones.id_vehiculo = vehiculos.id_vehiculo
+WHERE consignaciones.id_consignacion = ?`;
 
-  responseHTML += `<div style="margin-top: 20px;">`;
-  if (page > 1) {
-    responseHTML += `<a href="/consultas-consignaciones?page=${prevPage}&mes=${filtroMes}" class="btn btn-primary">Página Anterior</a>`;
-  }
-  responseHTML += `<a href="/consultas-consignaciones?page=${nextPage}&mes=${filtroMes}" class="btn btn-primary" style="margin-left: 10px;">Siguiente Página</a>`;
-  responseHTML += `</div>`;
 
-  responseHTML += '<br><a href="/">Volver al formulario</a>';
-  res.send(responseHTML);
+  pool.query(sql, [idConsignacion], (err, results) => {
+    if (err) {
+      console.error('Error al obtener la consignación:', err);
+      return res.status(500).json({ error: 'Error al obtener la consignación' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Consignación no encontrada' });
+    }
+
+    res.json(results[0]);
   });
 });
 
@@ -209,4 +263,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
-

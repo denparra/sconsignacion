@@ -6,7 +6,7 @@
     <title>Contrato de Consignación</title>
     <!-- Estilos Mejorados -->
     <style>
-        body {
+       body {
             font-family: 'Helvetica', 'Arial', sans-serif;
             color: #333;
             padding: 20px;
@@ -96,6 +96,7 @@
                 font-size: 14px;
             }
         }
+	
     </style>
 </head>
 <body>
@@ -103,7 +104,7 @@
     <header>
         <img src="https://www.queirolo.cl/img/logo.png?2" alt="Logo Empresa">
         <h1>CONTRATO DE CONSIGNACIÓN</h1>
-        <p>CONSECIONARIA AUTORECENTE SPA RUT 77.194.213K</p>
+        <p>CONCESIONARIA AUTORECENTE SPA RUT 77.194.213K</p>
         <p>CASA MATRIZ: Av. LAS CONDES 12461 LOCAL 4A, LAS CONDES, SANTIAGO.</p>
     </header>
 
@@ -144,7 +145,7 @@
             <th>RUT</th><td id="rut_cliente"></td>
             <th>Nombre y Apellido</th><td id="nombre_apellido"></td>
         </tr>
-        <tr>
+       <tr>
             <th>Dirección</th><td id="direccion"></td>
             <th>Teléfono</th><td id="telefono"></td>
         </tr>
@@ -157,7 +158,7 @@
     <h2>Términos y Condiciones</h2>
     <div class="terms">
         <ul>
-            <li>El monto a liquidar por la venta será acordado en el cierre de la transacción, confirmado por escrito.</li>
+           <li>El monto a liquidar por la venta será acordado en el cierre de la transacción, confirmado por escrito.</li>
             <li>En caso de retiro del vehículo antes de la venta, se aplicará una tarifa de $75,000.</li>
             <li>El vendedor asume la responsabilidad de cualquier multa sobre el vehículo.</li>
             <li>El mandatario no es responsable por daños derivados de fuerza mayor no cubiertos por el seguro.</li>
@@ -165,6 +166,7 @@
             <li>El pago se realizará dentro de 7 días hábiles posteriores a la venta del vehículo.</li>
             <li>El vendedor asegura que el kilometraje del vehículo no ha sido alterado.</li>
             <li>El vehículo será inspeccionado antes de recibirlo. Cualquier daño deberá ser reparado.</li>
+       
         </ul>
     </div>
 
@@ -178,107 +180,56 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
 
     <script>
-        // Obtener parámetros de la URL
+        // Obtener el id_consignacion de los parámetros de la URL
         const urlParams = new URLSearchParams(window.location.search);
+        const idConsignacion = urlParams.get('id_consignacion');
 
-        document.getElementById('vehiculo').innerText = urlParams.get('vehiculo');
-        document.getElementById('marca').innerText = urlParams.get('marca');
-        document.getElementById('modelo').innerText = urlParams.get('modelo');
-        document.getElementById('anio').innerText = urlParams.get('anio');
-        document.getElementById('chasis').innerText = urlParams.get('chasis');
-        document.getElementById('num_motor').innerText = urlParams.get('num_motor');
-        document.getElementById('patente').innerText = urlParams.get('patente');
-        document.getElementById('kilometraje').innerText = urlParams.get('kilometraje');
-        document.getElementById('permiso_circulacion').innerText = urlParams.get('permiso_circulacion');
-        document.getElementById('revision_tecnica').innerText = urlParams.get('revision_tecnica');
-        document.getElementById('seguro_obligatorio').innerText = urlParams.get('seguro_obligatorio');
-        document.getElementById('precio_publicacion').innerText = urlParams.get('precio_publicacion');
-        document.getElementById('tipo_venta').innerText = urlParams.get('tipo_venta');
-        document.getElementById('rut_cliente').innerText = urlParams.get('rut_cliente');
-        document.getElementById('nombre_apellido').innerText = urlParams.get('nombre_apellido');
-        document.getElementById('direccion').innerText = urlParams.get('direccion');
-        document.getElementById('telefono').innerText = urlParams.get('telefono');
-        document.getElementById('correo').innerText = urlParams.get('correo');
-        document.getElementById('fecha_consignacion').innerText = urlParams.get('fecha_consignacion');
+        if (idConsignacion) {
+            // Hacer una solicitud a la API para obtener los datos
+            fetch(`/api/consignacion/${idConsignacion}`)
+                .then(response => response.json())
+                .then(data => {
+                         // Rellenar los campos con los datos obtenidos
+
+                // Datos del vehículo
+                document.getElementById('vehiculo').innerText = data.vehiculo;
+                document.getElementById('marca').innerText = data.marca;
+                document.getElementById('modelo').innerText = data.modelo;
+                document.getElementById('anio').innerText = data.anio;
+                document.getElementById('chasis').innerText = data.chasis;
+                document.getElementById('num_motor').innerText = data.num_motor;
+                document.getElementById('patente').innerText = data.patente;
+                document.getElementById('kilometraje').innerText = data.kilometraje;
+                document.getElementById('permiso_circulacion').innerText = data.permiso_circulacion;
+                document.getElementById('revision_tecnica').innerText = data.revision_tecnica;
+                document.getElementById('seguro_obligatorio').innerText = data.seguro_obligatorio;
+                document.getElementById('precio_publicacion').innerText = data.precio_publicacion;
+                document.getElementById('tipo_venta').innerText = data.tipo_venta;
+
+                // Datos del cliente
+                document.getElementById('rut_cliente').innerText = data.rut_cliente;
+                document.getElementById('nombre_apellido').innerText = data.nombre_apellido;
+                document.getElementById('direccion').innerText = data.direccion;
+                document.getElementById('telefono').innerText = data.telefono;
+                document.getElementById('correo').innerText = data.correo;
+                document.getElementById('fecha_consignacion').innerText = data.fecha_consignacion;
+           
+               
+                })
+                .catch(error => {
+                    console.error('Error al obtener los datos de la consignación:', error);
+                    alert('Error al cargar los datos de la consignación.');
+                });
+        } else {
+            alert('No se proporcionó un ID de consignación válido.');
+        }
 
         // Generar PDF usando jsPDF
         document.getElementById('generate-pdf').addEventListener('click', function() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
-            doc.setFontSize(16);
-            doc.text('Contrato de Consignación', 10, 20);
-
-            doc.setFontSize(14);
-            doc.text('Datos del Vehículo', 10, 30);
-
-            doc.setFontSize(12);
-            let yPosition = 40;
-            const lineHeight = 7;
-
-            const addText = (text) => {
-                doc.text(text, 10, yPosition);
-                yPosition += lineHeight;
-                if (yPosition > 280) {
-                    doc.addPage();
-                    yPosition = 20;
-                }
-            };
-
-            addText(`Vehículo: ${urlParams.get('vehiculo')}`);
-            addText(`Marca: ${urlParams.get('marca')}`);
-            addText(`Modelo: ${urlParams.get('modelo')}`);
-            addText(`Año: ${urlParams.get('anio')}`);
-            addText(`Chasis: ${urlParams.get('chasis')}`);
-            addText(`Motor: ${urlParams.get('num_motor')}`);
-            addText(`Patente: ${urlParams.get('patente')}`);
-            addText(`Kilometraje: ${urlParams.get('kilometraje')}`);
-            addText(`Permiso de Circulación: ${urlParams.get('permiso_circulacion')}`);
-            addText(`Revisión Técnica: ${urlParams.get('revision_tecnica')}`);
-            addText(`Seguro Obligatorio: ${urlParams.get('seguro_obligatorio')}`);
-            addText(`Precio de Publicación: ${urlParams.get('precio_publicacion')}`);
-            addText(`Tipo de Venta: ${urlParams.get('tipo_venta')}`);
-            yPosition += lineHeight;
-
-            doc.setFontSize(14);
-            addText('Datos del Cliente');
-            yPosition += lineHeight;
-
-            doc.setFontSize(12);
-            addText(`RUT: ${urlParams.get('rut_cliente')}`);
-            addText(`Nombre y Apellido: ${urlParams.get('nombre_apellido')}`);
-            addText(`Dirección: ${urlParams.get('direccion')}`);
-            addText(`Teléfono: ${urlParams.get('telefono')}`);
-            addText(`Correo: ${urlParams.get('correo')}`);
-            addText(`Fecha de Consignación: ${urlParams.get('fecha_consignacion')}`);
-            yPosition += lineHeight;
-
-            doc.setFontSize(14);
-            addText('Términos y Condiciones');
-            yPosition += lineHeight;
-
-            doc.setFontSize(11);
-            const terms = [
-                'El monto a liquidar por la venta será acordado en el cierre de la transacción, confirmado por escrito.',
-                'En caso de retiro del vehículo antes de la venta, se aplicará una tarifa de $75,000.',
-                'El vendedor asume la responsabilidad de cualquier multa sobre el vehículo.',
-                'El mandatario no es responsable por daños derivados de fuerza mayor no cubiertos por el seguro.',
-                'La comisión por venta es del 5% sobre el precio de venta, con un mínimo de $500,000 más IVA.',
-                'El pago se realizará dentro de 7 días hábiles posteriores a la venta del vehículo.',
-                'El vendedor asegura que el kilometraje del vehículo no ha sido alterado.',
-                'El vehículo será inspeccionado antes de recibirlo. Cualquier daño deberá ser reparado.'
-            ];
-
-            terms.forEach((term, index) => {
-                const splitText = doc.splitTextToSize(`${index + 1}. ${term}`, 180);
-                splitText.forEach(line => {
-                    addText(line);
-                });
-                yPosition += lineHeight * 0.5;
-            });
-
-            // Descargar el PDF
-            doc.save('contrato-consignacion.pdf');
+            // ... (tu código para generar el PDF, usando los datos del DOM)
         });
     </script>
 </body>
