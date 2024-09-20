@@ -9,6 +9,23 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Queirolo Autos</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" 
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">Cerrar Sesión</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
     <div class="container">
         <h1 class="text-center my-4">Formulario de Consignación</h1>
         <form action="/agregar-consignacion" method="POST">
@@ -117,7 +134,6 @@
 
         <!-- Enlace para consultar consignaciones -->
         <a href="/consultas-consignaciones" class="btn btn-secondary btn-block">Consultar Consignaciones</a>
-
     </div>
 
     <!-- Bootstrap JS and dependencies -->
