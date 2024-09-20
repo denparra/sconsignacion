@@ -1,62 +1,63 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <!-- Metadatos y Estilos -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contrato de Consignación</title>
     <!-- Estilos Mejorados -->
     <style>
-       body {
+        body {
             font-family: 'Helvetica', 'Arial', sans-serif;
             color: #333;
-            padding: 20px;
-            line-height: 1.6;
+            padding: 10px;
+            line-height: 1.4;
             max-width: 800px;
             margin: 0 auto;
             background-color: #ffffff;
         }
         header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         header img {
-            max-width: 250px;
-            margin-bottom: 10px;
+            max-width: 200px;
+            margin-bottom: 5px;
         }
         h1 {
             color: #cc0000;
-            font-size: 26px;
+            font-size: 22px;
             margin-bottom: 5px;
         }
         h2 {
             color: #555;
-            font-size: 22px;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #cc0000;
-            padding-bottom: 5px;
+            font-size: 18px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #cc0000;
+            padding-bottom: 3px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         table th, table td {
-            padding: 10px;
+            padding: 5px;
             text-align: left;
             border: 1px solid #ddd;
-            font-size: 16px;
+            font-size: 14px;
         }
         .btn {
             display: inline-block;
-            padding: 12px 25px;
-            font-size: 18px;
+            padding: 10px 20px;
+            font-size: 16px;
             color: #fff;
             background-color: #007bff;
             border: none;
             border-radius: 5px;
             text-decoration: none;
             text-align: center;
-            margin: 20px 10px 0 0;
+            margin: 15px 10px 0 0;
             cursor: pointer;
         }
         .btn:hover {
@@ -67,36 +68,80 @@
             padding-left: 20px;
         }
         .terms li {
-            margin-bottom: 10px;
-            font-size: 16px;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        /* Estilos para la zona de firma */
+        .signature-section {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature-box {
+            width: 45%;
+            text-align: center;
+        }
+        .signature-line {
+            margin-top: 50px;
+            border-top: 1px solid #000;
+            width: 100%;
+            position: relative;
+        }
+        .signature-name {
+            position: absolute;
+            top: 55px;
+            left: 0;
+            width: 100%;
+            font-weight: bold;
         }
         /* Estilos Responsivos */
         @media (max-width: 600px) {
             body {
-                padding: 15px;
+                padding: 10px;
             }
             header img {
-                max-width: 200px;
+                max-width: 150px;
             }
             h1 {
-                font-size: 22px;
+                font-size: 18px;
             }
             h2 {
-                font-size: 20px;
+                font-size: 16px;
             }
             table th, table td {
-                font-size: 14px;
-                padding: 8px;
+                font-size: 12px;
+                padding: 4px;
             }
             .btn {
-                font-size: 16px;
-                padding: 10px 20px;
+                font-size: 14px;
+                padding: 8px 15px;
             }
             .terms li {
-                font-size: 14px;
+                font-size: 12px;
+            }
+            .signature-section {
+                flex-direction: column;
+                align-items: center;
+            }
+            .signature-box {
+                width: 100%;
+                margin-bottom: 30px;
             }
         }
-	
+        /* Estilos para impresión/PDF */
+        @media print {
+            body {
+                margin: 0;
+                padding: 5px;
+            }
+            header, h1, h2 {
+                margin: 0;
+                padding: 0;
+            }
+            .btn {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -104,117 +149,139 @@
     <header>
         <img src="https://www.queirolo.cl/img/logo.png?2" alt="Logo Empresa">
         <h1>CONTRATO DE CONSIGNACIÓN</h1>
-        <p>CONCESIONARIA AUTORECENTE SPA RUT 77.194.213K</p>
-        <p>CASA MATRIZ: Av. LAS CONDES 12461 LOCAL 4A, LAS CONDES, SANTIAGO.</p>
+        <p style="font-size: 12px;">CONCESIONARIA AUTORECENTE SPA RUT 77.194.213K</p>
+        <p style="font-size: 12px;">CASA MATRIZ: Av. LAS CONDES 12461 LOCAL 4A, LAS CONDES, SANTIAGO.</p>
     </header>
 
-    <h2>Datos del Vehículo</h2>
-    <table class="four-columns">
-        <tr>
-            <th>Vehículo</th><td id="vehiculo"></td>
-            <th>Marca</th><td id="marca"></td>
-        </tr>
-        <tr>
-            <th>Modelo</th><td id="modelo"></td>
-            <th>Año</th><td id="anio"></td>
-        </tr>
-        <tr>
-            <th>Chasis</th><td id="chasis"></td>
-            <th>Motor</th><td id="num_motor"></td>
-        </tr>
-        <tr>
-            <th>Patente</th><td id="patente"></td>
-            <th>Kilometraje</th><td id="kilometraje"></td>
-        </tr>
-        <tr>
-            <th>Permiso de Circulación</th><td id="permiso_circulacion"></td>
-            <th>Revisión Técnica</th><td id="revision_tecnica"></td>
-        </tr>
-        <tr>
-            <th>Seguro Obligatorio</th><td id="seguro_obligatorio"></td>
-            <th>Precio de Publicación</th><td id="precio_publicacion"></td>
-        </tr>
-        <tr>
-            <th>Tipo de Venta</th><td id="tipo_venta"></td>
-        </tr>
-    </table>
+    <!-- Contenido del contrato envuelto en un div con id="contrato" -->
+    <div id="contrato">
+        <h2>Datos del Vehículo</h2>
+        <table>
+            <tr>
+                <th>Vehículo</th><td id="vehiculo"></td>
+                <th>Marca</th><td id="marca"></td>
+            </tr>
+            <tr>
+                <th>Modelo</th><td id="modelo"></td>
+                <th>Año</th><td id="anio"></td>
+            </tr>
+            <tr>
+                <th>Chasis</th><td id="chasis"></td>
+                <th>Motor</th><td id="num_motor"></td>
+            </tr>
+            <tr>
+                <th>Patente</th><td id="patente"></td>
+                <th>Kilometraje</th><td id="kilometraje"></td>
+            </tr>
+            <tr>
+                <th>Permiso de Circulación</th><td id="permiso_circulacion"></td>
+                <th>Revisión Técnica</th><td id="revision_tecnica"></td>
+            </tr>
+            <tr>
+                <th>Seguro Obligatorio</th><td id="seguro_obligatorio"></td>
+                <th>Precio de Publicación</th><td id="precio_publicacion"></td>
+            </tr>
+            <tr>
+                <th>Tipo de Venta</th><td id="tipo_venta"></td>
+                <th></th><td></td>
+            </tr>
+        </table>
 
-    <h2>Datos del Cliente</h2>
-    <table class="four-columns">
-        <tr>
-            <th>RUT</th><td id="rut_cliente"></td>
-            <th>Nombre y Apellido</th><td id="nombre_apellido"></td>
-        </tr>
-       <tr>
-            <th>Dirección</th><td id="direccion"></td>
-            <th>Teléfono</th><td id="telefono"></td>
-        </tr>
-        <tr>
-            <th>Correo</th><td id="correo"></td>
-            <th>Fecha</th><td id="fecha_consignacion"></td>
-        </tr>
-    </table>
+        <h2>Datos del Cliente</h2>
+        <table>
+            <tr>
+                <th>RUT</th><td id="rut_cliente"></td>
+                <th>Nombre y Apellido</th><td id="nombre_apellido"></td>
+            </tr>
+            <tr>
+                <th>Dirección</th><td id="direccion"></td>
+                <th>Teléfono</th><td id="telefono"></td>
+            </tr>
+            <tr>
+                <th>Correo</th><td id="correo"></td>
+                <th>Fecha</th><td id="fecha_consignacion"></td>
+            </tr>
+        </table>
 
-    <h2>Términos y Condiciones</h2>
-    <div class="terms">
-        <ul>
-           <li>El monto a liquidar por la venta será acordado en el cierre de la transacción, confirmado por escrito.</li>
-            <li>En caso de retiro del vehículo antes de la venta, se aplicará una tarifa de $75,000.</li>
-            <li>El vendedor asume la responsabilidad de cualquier multa sobre el vehículo.</li>
-            <li>El mandatario no es responsable por daños derivados de fuerza mayor no cubiertos por el seguro.</li>
-            <li>La comisión por venta es del 5% sobre el precio de venta, con un mínimo de $500,000 más IVA.</li>
-            <li>El pago se realizará dentro de 7 días hábiles posteriores a la venta del vehículo.</li>
-            <li>El vendedor asegura que el kilometraje del vehículo no ha sido alterado.</li>
-            <li>El vehículo será inspeccionado antes de recibirlo. Cualquier daño deberá ser reparado.</li>
-       
-        </ul>
+        <h2>Términos y Condiciones</h2>
+        <div class="terms">
+            <ul>
+                <li><strong>1. Inspección Técnica Previa:</strong> El vehículo será sometido a una inspección técnica previa. Cualquier daño o mal funcionamiento detectado será informado y el vehículo no será aceptado hasta realizar las reparaciones necesarias. Los costos de la inspección serán asumidos por el consignante.</li>
+                <li><strong>2. Retiro del Vehiculo:</strong>En caso de retiro del vehículo antes de la venta, se aplicará una tarifa de $75,000.</li>
+                <li><strong>3. Exclusividad:</strong> El consignante no podrá ofrecer el vehículo en otros medios durante su custodia en la concesionaria. En caso de incumplimiento, se aplicará una multa de $75.000. Si el vehículo está publicado en otros sitios, la empresa retirará el vehículo y el consignante asumirá los gastos de retiro y administración.</li>
+                <li><strong>4. Condiciones de Liquidación:</strong> El monto a liquidar será acordado al cierre y confirmado por mail, WhatsApp o llamada.</li>
+                <li><strong>5. Responsabilidad por Multas y Gravámenes:</strong> Cualquier multa, gravamen o prenda del vehículo es responsabilidad del consignante, liberando al mandatario de cualquier obligación.</li>
+                <li><strong>6. Comisión por Venta:</strong> La comisión es del 5% sobre el precio de venta, más IVA. Para vehículos con un precio inferior a $10.000.000, la comisión fija es de $500.000 más IVA.</li>
+            </ul>
+        </div>
+
+        <!-- Zona de Firma -->
+        <div class="signature-section">
+            <div class="signature-box">
+                <div class="signature-line">Mandante</div>
+                <div class="signature-name"> </div>
+            </div>
+            <div class="signature-box">
+                <div class="signature-line">Autorecente Spa 77.194.213-k</div>
+                <div class="signature-name"> </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Botones -->
-    <div style="margin-top: 30px;">
-        <a href="#" class="btn" id="generate-pdf">Generar PDF</a>
+    <div style="margin-top: 20px;">
+        <button class="btn" id="generate-pdf" disabled>Generar PDF</button>
         <a href="/" class="btn">Volver al Formulario</a>
     </div>
 
-    <!-- jsPDF Library -->
+    <!-- jsPDF y html2pdf.js Libraries -->
+    <!-- jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <!-- html2pdf.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
 
     <script>
         // Obtener el id_consignacion de los parámetros de la URL
         const urlParams = new URLSearchParams(window.location.search);
         const idConsignacion = urlParams.get('id_consignacion');
 
+        // Seleccionar el botón y el contenido del contrato
+        const generatePdfButton = document.getElementById('generate-pdf');
+        const contratoElement = document.getElementById('contrato');
+
         if (idConsignacion) {
             // Hacer una solicitud a la API para obtener los datos
             fetch(`/api/consignacion/${idConsignacion}`)
                 .then(response => response.json())
                 .then(data => {
-                         // Rellenar los campos con los datos obtenidos
+                    // Rellenar los campos con los datos obtenidos
 
-                // Datos del vehículo
-                document.getElementById('vehiculo').innerText = data.vehiculo;
-                document.getElementById('marca').innerText = data.marca;
-                document.getElementById('modelo').innerText = data.modelo;
-                document.getElementById('anio').innerText = data.anio;
-                document.getElementById('chasis').innerText = data.chasis;
-                document.getElementById('num_motor').innerText = data.num_motor;
-                document.getElementById('patente').innerText = data.patente;
-                document.getElementById('kilometraje').innerText = data.kilometraje;
-                document.getElementById('permiso_circulacion').innerText = data.permiso_circulacion;
-                document.getElementById('revision_tecnica').innerText = data.revision_tecnica;
-                document.getElementById('seguro_obligatorio').innerText = data.seguro_obligatorio;
-                document.getElementById('precio_publicacion').innerText = data.precio_publicacion;
-                document.getElementById('tipo_venta').innerText = data.tipo_venta;
+                    // Datos del vehículo
+                    document.getElementById('vehiculo').innerText = data.vehiculo;
+                    document.getElementById('marca').innerText = data.marca;
+                    document.getElementById('modelo').innerText = data.modelo;
+                    document.getElementById('anio').innerText = data.anio;
+                    document.getElementById('chasis').innerText = data.chasis;
+                    document.getElementById('num_motor').innerText = data.num_motor;
+                    document.getElementById('patente').innerText = data.patente;
+                    document.getElementById('kilometraje').innerText = data.kilometraje;
+                    document.getElementById('permiso_circulacion').innerText = data.permiso_circulacion;
+                    document.getElementById('revision_tecnica').innerText = data.revision_tecnica;
+                    document.getElementById('seguro_obligatorio').innerText = data.seguro_obligatorio;
+                    document.getElementById('precio_publicacion').innerText = data.precio_publicacion;
+                    document.getElementById('tipo_venta').innerText = data.tipo_venta;
 
-                // Datos del cliente
-                document.getElementById('rut_cliente').innerText = data.rut_cliente;
-                document.getElementById('nombre_apellido').innerText = data.nombre_apellido;
-                document.getElementById('direccion').innerText = data.direccion;
-                document.getElementById('telefono').innerText = data.telefono;
-                document.getElementById('correo').innerText = data.correo;
-                document.getElementById('fecha_consignacion').innerText = data.fecha_consignacion;
-           
-               
+                    // Datos del cliente
+                    document.getElementById('rut_cliente').innerText = data.rut_cliente;
+                    document.getElementById('nombre_apellido').innerText = data.nombre_apellido;
+                    document.getElementById('direccion').innerText = data.direccion;
+                    document.getElementById('telefono').innerText = data.telefono;
+                    document.getElementById('correo').innerText = data.correo;
+                    document.getElementById('fecha_consignacion').innerText = data.fecha_consignacion;
+
+                    // Habilitar el botón de generar PDF
+                    generatePdfButton.disabled = false;
                 })
                 .catch(error => {
                     console.error('Error al obtener los datos de la consignación:', error);
@@ -224,12 +291,19 @@
             alert('No se proporcionó un ID de consignación válido.');
         }
 
-        // Generar PDF usando jsPDF
-        document.getElementById('generate-pdf').addEventListener('click', function() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+        // Evento para generar el PDF utilizando html2pdf.js
+        generatePdfButton.addEventListener('click', () => {
+            // Opciones de configuración para html2pdf.js
+            const options = {
+                margin:       [5, 5, 5, 5], // Márgenes reducidos
+                filename:     'contrato-consignacion.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 1.2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
 
-            // ... (tu código para generar el PDF, usando los datos del DOM)
+            // Generar el PDF a partir del elemento HTML
+            html2pdf().set(options).from(contratoElement).save();
         });
     </script>
 </body>
