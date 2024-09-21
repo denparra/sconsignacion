@@ -14,13 +14,21 @@ const app = express();
 // Configurar body-parser para manejar datos del formulario
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Configurar Express para confiar en el proxy
+app.set('trust proxy', 1);
+
 // Configurar express-session
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'tu_clave_secreta', // Usa variable de entorno o una clave por defecto
+    secret: process.env.SESSION_SECRET || 'tu_clave_secreta',
     resave: false,
     saveUninitialized: false,
-    
+    cookie: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', // Mantener en true en producción
+        maxAge: 1000 * 60 * 60 * 24 // 1 día
+    }
 }));
+
 
 // Configurar connect-flash
 app.use(flash());
