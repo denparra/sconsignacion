@@ -19,11 +19,7 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'tu_clave_secreta', // Usa variable de entorno o una clave por defecto
     resave: false,
     saveUninitialized: false,
-    cookie: {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // Asegura que las cookies sean seguras en producción
-        maxAge: 1000 * 60 * 60 * 24 // 1 día
-    }
+    
 }));
 
 // Configurar connect-flash
