@@ -183,7 +183,7 @@
             </tr>
             <tr>
                 <th>Tipo de Venta</th><td id="tipo_venta"></td>
-                <th></th><td></td>
+                <th>Consignadora</th><td id="consignadora_nombre"></td>
             </tr>
         </table>
 
@@ -271,6 +271,7 @@
                     document.getElementById('seguro_obligatorio').innerText = data.seguro_obligatorio;
                     document.getElementById('precio_publicacion').innerText = data.precio_publicacion;
                     document.getElementById('tipo_venta').innerText = data.tipo_venta;
+                    document.getElementById('consignadora_nombre').innerText = data.consignadora_nombre;
 
                     // Datos del cliente
                     document.getElementById('rut_cliente').innerText = data.rut_cliente;

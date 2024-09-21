@@ -19,6 +19,11 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'tu_clave_secreta', // Usa variable de entorno o una clave por defecto
     resave: false,
     saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', // Asegura que las cookies sean seguras en producción
+        maxAge: 1000 * 60 * 60 * 24 // 1 día
+    }
 }));
 
 // Configurar connect-flash
@@ -106,7 +111,7 @@ app.post('/login', (req, res) => {
 
         const usuario = results[0];
 
-        if (usuario.contrasena === contrasena) {
+        if (usuario.contrasena === contrasena) { // Considera encriptar la contraseña en producción
             // Contraseña correcta, establecer sesión
             req.session.userId = usuario.id_usuario;
             res.redirect('/index.html'); // Redirige a la página protegida
@@ -139,8 +144,15 @@ app.post('/agregar-consignacion', isAuthenticated, (req, res) => {
         rut_cliente, nombre_apellido, direccion, telefono, correo,
         vehiculo, marca, modelo, anio, chasis, num_motor, patente, kilometraje,
         permiso_circulacion, revision_tecnica, seguro_obligatorio,
-        fecha_consignacion, precio_publicacion, tipo_venta
+        fecha_consignacion, precio_publicacion, tipo_venta,
+        id_consignadora // Nuevo campo agregado
     } = req.body;
+
+    // Validar que id_consignadora esté presente y sea válido
+    if (!id_consignadora) {
+        req.flash('error', 'Debe seleccionar una consignadora.');
+        return res.redirect('/index.html');
+    }
 
     // Insertar datos en la tabla `clientes`
     const clienteSql = `INSERT INTO clientes (rut_cliente, nombre_apellido, direccion, telefono, correo) 
@@ -165,9 +177,9 @@ app.post('/agregar-consignacion', isAuthenticated, (req, res) => {
             const vehiculoId = result.insertId; // Obtener el ID del vehículo insertado
 
             // Insertar datos en la tabla `consignaciones`
-            const consignacionSql = `INSERT INTO consignaciones (id_cliente, id_vehiculo, fecha_consignacion, precio_publicacion, tipo_venta)
-                                     VALUES (?, ?, ?, ?, ?)`;
-            pool.query(consignacionSql, [clienteId, vehiculoId, fecha_consignacion, precio_publicacion, tipo_venta], (err, result) => {
+            const consignacionSql = `INSERT INTO consignaciones (id_cliente, id_vehiculo, id_consignadora, fecha_consignacion, precio_publicacion, tipo_venta)
+                                     VALUES (?, ?, ?, ?, ?, ?)`;
+            pool.query(consignacionSql, [clienteId, vehiculoId, id_consignadora, fecha_consignacion, precio_publicacion, tipo_venta], (err, result) => {
                 if (err) {
                     console.error('Error al insertar la consignación:', err);
                     return res.status(500).send('Error al insertar la consignación');
@@ -180,7 +192,7 @@ app.post('/agregar-consignacion', isAuthenticated, (req, res) => {
                     from: 'infoautorecente@gmail.com',
                     to: correo,  // Enviar al correo del cliente
                     subject: 'Confirmación de Consignación',
-                    text: `Estimado ${nombre_apellido},\n\nGracias por consignar su vehículo con nosotros. Los detalles de la consignación son:\n\nVehículo: ${vehiculo}\nPrecio de Publicación: ${precio_publicacion}\nTipo de Venta: ${tipo_venta}\n\nSaludos,\nQueirolo Autos`
+                    text: `Estimado ${nombre_apellido},\n\nGracias por consignar su vehículo con nosotros. Los detalles de la consignación son:\n\nVehículo: ${vehiculo}\nPrecio de Publicación: ${precio_publicacion}\nTipo de Venta: ${tipo_venta}\nConsignadora: ${id_consignadora}\n\nSaludos,\nQueirolo Autos`
                 };
 
                 transporter.sendMail(mailOptions, (error, info) => {
@@ -206,10 +218,11 @@ app.get('/consultas-consignaciones', isAuthenticated, (req, res) => {
 
     // Filtrar por mes si se proporciona
     let filtroMes = req.query.mes || ''; // Captura el mes del query string
-    let sql = `SELECT consignaciones.id_consignacion, clientes.nombre_apellido, vehiculos.vehiculo, vehiculos.patente, consignaciones.fecha_consignacion, consignaciones.precio_publicacion, consignaciones.tipo_venta 
+    let sql = `SELECT consignaciones.id_consignacion, clientes.nombre_apellido, clientes.rut_cliente, vehiculos.vehiculo, vehiculos.patente, consignaciones.fecha_consignacion, consignaciones.precio_publicacion, consignaciones.tipo_venta, consignadoras.nombre AS consignadora
                FROM consignaciones 
                JOIN clientes ON consignaciones.id_cliente = clientes.id_cliente 
                JOIN vehiculos ON consignaciones.id_vehiculo = vehiculos.id_vehiculo
+               JOIN consignadoras ON consignaciones.id_consignadora = consignadoras.id_consignadora
                WHERE 1=1`;
 
     // Si se proporciona un mes, agregar condición a la consulta SQL
@@ -252,11 +265,13 @@ app.get('/consultas-consignaciones', isAuthenticated, (req, res) => {
                               <tr>
                                 <th>ID Consignación</th>
                                 <th>Cliente</th>
+                                <th>RUT Cliente</th>
                                 <th>Vehículo</th>
                                 <th>Patente</th>
                                 <th>Fecha</th>
                                 <th>Precio</th>
                                 <th>Tipo de Venta</th>
+                                <th>Consignadora</th>
                                 <th>Acciones</th>
                               </tr>`;
 
@@ -265,11 +280,13 @@ app.get('/consultas-consignaciones', isAuthenticated, (req, res) => {
                 <tr>
                   <td>${consignacion.id_consignacion}</td>
                   <td>${consignacion.nombre_apellido}</td>
+                  <td>${consignacion.rut_cliente}</td>
                   <td>${consignacion.vehiculo}</td>
                   <td>${consignacion.patente}</td>
                   <td>${consignacion.fecha_consignacion}</td>
                   <td>${consignacion.precio_publicacion}</td>
                   <td>${consignacion.tipo_venta}</td>
+                  <td>${consignacion.consignadora}</td>
                   <td><a href="/contratos.html?id_consignacion=${consignacion.id_consignacion}">Ver Contrato</a></td>
                 </tr>`;
         });
@@ -296,7 +313,7 @@ app.get('/consultas-consignaciones', isAuthenticated, (req, res) => {
 app.get('/api/consignacion/:id', isAuthenticated, (req, res) => {
     const idConsignacion = req.params.id;
 
-    // Consulta para obtener los datos de la consignación, cliente y vehículo
+    // Consulta para obtener los datos de la consignación, cliente, vehículo y consignadora
     const sql = `SELECT 
         consignaciones.id_consignacion AS consignacion_id,
         consignaciones.fecha_consignacion,
@@ -319,10 +336,13 @@ app.get('/api/consignacion/:id', isAuthenticated, (req, res) => {
         vehiculos.kilometraje,
         vehiculos.permiso_circulacion,
         vehiculos.revision_tecnica,
-        vehiculos.seguro_obligatorio
+        vehiculos.seguro_obligatorio,
+        consignadoras.id_consignadora,
+        consignadoras.nombre AS consignadora_nombre
     FROM consignaciones
     JOIN clientes ON consignaciones.id_cliente = clientes.id_cliente
     JOIN vehiculos ON consignaciones.id_vehiculo = vehiculos.id_vehiculo
+    JOIN consignadoras ON consignaciones.id_consignadora = consignadoras.id_consignadora
     WHERE consignaciones.id_consignacion = ?`;
 
     pool.query(sql, [idConsignacion], (err, results) => {
@@ -343,6 +363,23 @@ app.get('/api/consignacion/:id', isAuthenticated, (req, res) => {
 app.get('/contratos.html', isAuthenticated, (req, res) => {
     res.sendFile(path.join(__dirname, 'contratos.html')); // Sirve el archivo contratos.html
 });
+
+// === Nueva Ruta API para Consignadoras ===
+app.get('/api/consignadoras', isAuthenticated, (req, res) => {
+    const sql = 'SELECT id_consignadora, nombre FROM consignadoras';
+    
+    pool.query(sql, (err, results) => {
+        if (err) {
+            console.error('Error al obtener consignadoras:', err);
+            return res.status(500).json({ error: 'Error al obtener consignadoras' });
+        }
+        
+        res.json(results);
+    });
+});
+
+// Middleware para servir archivos estáticos (después de las rutas específicas)
+app.use(express.static(path.join(__dirname)));
 
 // Iniciar el servidor en el puerto asignado por Railway o en el puerto 3000 localmente
 const PORT = process.env.PORT || 3000;

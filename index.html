@@ -53,6 +53,15 @@
                         <label for="correo">Correo Electrónico:</label>
                         <input type="email" class="form-control" id="correo" name="correo">
                     </div>
+                    
+                    <!-- Nuevo Campo: Consignadora -->
+                    <div class="form-group">
+                        <label for="id_consignadora">Consignadora:</label>
+                        <select class="form-control" id="id_consignadora" name="id_consignadora" required>
+                            <option value="">Seleccione una consignadora</option>
+                            <!-- Las opciones se llenarán dinámicamente -->
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -140,6 +149,24 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Script para cargar consignadoras -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/api/consignadoras')
+                .then(response => response.json())
+                .then(data => {
+                    const consignadoraSelect = document.getElementById('id_consignadora');
+                    data.forEach(consignadora => {
+                        const option = document.createElement('option');
+                        option.value = consignadora.id_consignadora;
+                        option.textContent = consignadora.nombre;
+                        consignadoraSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error al cargar consignadoras:', error));
+        });
+    </script>
 
 </body>
 </html>
