@@ -29,7 +29,6 @@ app.use(session({
     }
 }));
 
-
 // Configurar connect-flash
 app.use(flash());
 
@@ -77,7 +76,12 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-// ===== Definir Rutas Antes de `express.static` =====
+// ===== Función de Formateo =====
+function formatNumber(number) {
+    return new Intl.NumberFormat('es-CL').format(number);
+}
+
+// ===== Definir Rutas Antes de express.static =====
 
 // Ruta GET para la raíz '/'
 app.get('/', (req, res) => {
@@ -191,12 +195,15 @@ app.post('/agregar-consignacion', isAuthenticated, (req, res) => {
 
                 const consignacionId = result.insertId; // Obtener el ID de la consignación insertada
 
+                // Formatear el precio para el correo
+                const precioFormateado = formatNumber(precio_publicacion);
+
                 // Enviar correo de confirmación
                 const mailOptions = {
                     from: 'infoautorecente@gmail.com',
                     to: correo,  // Enviar al correo del cliente
                     subject: 'Confirmación de Consignación',
-                    text: `Estimado ${nombre_apellido},\n\nGracias por consignar su vehículo con nosotros. Los detalles de la consignación son:\n\nVehículo: ${vehiculo}\nPrecio de Publicación: ${precio_publicacion}\nTipo de Venta: ${tipo_venta}\nConsignadora: ${id_consignadora}\n\nSaludos,\nQueirolo Autos`
+                    text: `Estimado ${nombre_apellido},\n\nGracias por consignar su vehículo con nosotros. Los detalles de la consignación son:\n\nVehículo: ${vehiculo}\nPrecio de Publicación: $${precioFormateado}\nTipo de Venta: ${tipo_venta}\nConsignadora: ${id_consignadora}\n\nSaludos,\nQueirolo Autos`
                 };
 
                 transporter.sendMail(mailOptions, (error, info) => {
@@ -280,6 +287,7 @@ app.get('/consultas-consignaciones', isAuthenticated, (req, res) => {
                               </tr>`;
 
         results.forEach(consignacion => {
+            const precioFormateado = formatNumber(consignacion.precio_publicacion);
             responseHTML += `
                 <tr>
                   <td>${consignacion.id_consignacion}</td>
@@ -288,7 +296,7 @@ app.get('/consultas-consignaciones', isAuthenticated, (req, res) => {
                   <td>${consignacion.vehiculo}</td>
                   <td>${consignacion.patente}</td>
                   <td>${consignacion.fecha_consignacion}</td>
-                  <td>${consignacion.precio_publicacion}</td>
+                  <td>$${precioFormateado}</td>
                   <td>${consignacion.tipo_venta}</td>
                   <td>${consignacion.consignadora}</td>
                   <td><a href="/contratos.html?id_consignacion=${consignacion.id_consignacion}">Ver Contrato</a></td>
@@ -313,7 +321,7 @@ app.get('/consultas-consignaciones', isAuthenticated, (req, res) => {
     });
 });
 
-// **Nueva ruta para obtener los datos de una consignación específica**
+// Ruta para obtener los datos de una consignación específica
 app.get('/api/consignacion/:id', isAuthenticated, (req, res) => {
     const idConsignacion = req.params.id;
 
@@ -359,7 +367,11 @@ app.get('/api/consignacion/:id', isAuthenticated, (req, res) => {
             return res.status(404).json({ error: 'Consignación no encontrada' });
         }
 
-        res.json(results[0]);
+        const consignacion = results[0];
+        // Formatear el precio_publicacion
+        consignacion.precio_publicacion = formatNumber(consignacion.precio_publicacion);
+
+        res.json(consignacion);
     });
 });
 
