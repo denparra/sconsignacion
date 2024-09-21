@@ -7,6 +7,7 @@ const path = require('path');
 const nodemailer = require('nodemailer'); // Requerir Nodemailer
 const session = require('express-session'); // Requerir express-session
 const flash = require('connect-flash'); // Requerir connect-flash
+const MySQLStore = require('express-mysql-session')(session); // Requerir express-mysql-session
 require('dotenv').config(); // Cargar variables de entorno
 
 const app = express();
@@ -17,9 +18,21 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Configurar Express para confiar en el proxy
 app.set('trust proxy', 1);
 
-// Configurar express-session
+// Configurar el almacén de sesiones MySQLStore
+const sessionStoreOptions = {
+    host: process.env.MYSQLHOST,
+    port: process.env.MYSQLPORT || 3306,
+    user: process.env.MYSQLUSER,
+    password: process.env.MYSQLPASSWORD,
+    database: process.env.MYSQLDATABASE,
+};
+
+const sessionStore = new MySQLStore(sessionStoreOptions);
+
+// Configurar express-session para usar MySQLStore
 app.use(session({
     secret: process.env.SESSION_SECRET || 'tu_clave_secreta',
+    store: sessionStore,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -292,7 +305,7 @@ app.get('/consultas-consignaciones', isAuthenticated, (req, res) => {
                                   <label for="consignadora">Consignadora:</label>
                                   <select name="consignadora" id="consignadora">
                                     <option value="">Todas</option>`;
-            
+
             consignadoras.forEach(consignadoraItem => {
                 responseHTML += `<option value="${consignadoraItem.nombre}">${consignadoraItem.nombre}</option>`;
             });
@@ -410,14 +423,14 @@ app.get('/api/consignacion/:id', isAuthenticated, (req, res) => {
 
 // === Nueva Ruta API para Consignadoras ===
 app.get('/api/consignadoras', isAuthenticated, (req, res) => {
-    const sql = 'SELECT id_consignadora, nombre FROM consignadoras';
-    
+    const sql = 'SELECT nombre FROM consignadoras';
+
     pool.query(sql, (err, results) => {
         if (err) {
             console.error('Error al obtener consignadoras:', err);
             return res.status(500).json({ error: 'Error al obtener consignadoras' });
         }
-        
+
         res.json(results);
     });
 });
