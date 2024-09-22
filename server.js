@@ -423,7 +423,7 @@ app.get('/api/consignacion/:id', isAuthenticated, (req, res) => {
 
 // === Nueva Ruta API para Consignadoras ===
 app.get('/api/consignadoras', isAuthenticated, (req, res) => {
-    const sql = 'SELECT nombre FROM consignadoras';
+    const sql = 'SELECT id_consignadora, nombre FROM consignadoras';  // Asegúrate de incluir 'id_consignadora'
 
     pool.query(sql, (err, results) => {
         if (err) {
@@ -431,7 +431,7 @@ app.get('/api/consignadoras', isAuthenticated, (req, res) => {
             return res.status(500).json({ error: 'Error al obtener consignadoras' });
         }
 
-        res.json(results);
+        res.json(results);  // Devuelve también el 'id_consignadora'
     });
 });
 
