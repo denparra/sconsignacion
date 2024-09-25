@@ -1,3 +1,4 @@
+
 // server.js
 
 const express = require('express');
@@ -208,16 +209,45 @@ app.post('/agregar-consignacion', isAuthenticated, (req, res) => {
 
                 const consignacionId = result.insertId; // Obtener el ID de la consignación insertada
 
+                // Después de insertar la consignación, obtenemos el nombre de la consignadora
+    pool.query('SELECT nombre FROM consignadoras WHERE id_consignadora = ?', [id_consignadora], (err, result) => {
+        if (err) {
+            console.error('Error al obtener el nombre de la consignadora:', err);
+            return res.status(500).send('Error al obtener la consignadora');
+        }
+
+        // Aquí tienes el nombre de la consignadora
+        const consignadora_nombre = result[0].nombre;
+
                 // Formatear el precio para el correo
                 const precioFormateado = formatNumber(precio_publicacion);
 
-                // Enviar correo de confirmación
-                const mailOptions = {
-                    from: 'infoautorecente@gmail.com',
-                    to: correo,  // Enviar al correo del cliente
-                    subject: 'Confirmación de Consignación',
-                    text: `Estimado ${nombre_apellido},\n\nGracias por consignar su vehículo con nosotros. Los detalles de la consignación son:\n\nVehículo: ${vehiculo}\nPrecio de Publicación: $${precioFormateado}\nTipo de Venta: ${tipo_venta}\nConsignadora: ${id_consignadora}\n\nSaludos,\nQueirolo Autos`
-                };
+               // Enviar correo de confirmación
+                    const mailOptions = {
+                        from: 'infoautorecente@gmail.com',
+                        to: correo,  // Enviar al correo del cliente
+                        subject: 'Confirmación de Consignación de su Vehículo',
+                        text: `Buen día, estimado/a ${nombre_apellido}, Agradecemos sinceramente la confianza depositada en Queirolo Autos para gestionar la consignación de su vehículo. Nos complace informarle que su ${vehiculo} ${marca} ${modelo} ${anio} ha sido ingresado exitosamente en nuestro sistema y actualmente se encuentra en proceso de preparación para su pronta publicación en nuestras instalaciones.
+
+
+Detalles de la Consignación: 
+- Nombre Consignadora: ${consignadora_nombre}     
+- Tipo de Venta: ${tipo_venta} 
+- Precio de Publicación: $${precioFormateado} 
+
+
+Puede visitar nuestra página web Queirolo.cl para más información o contactarnos directamente en nuestras oficinas. 
+
+
+Dirección: 
+Av. Las Condes 12461, Local 4, Showroom -3, Las Condes, Santiago. 
+
+
+Estamos a su disposición para cualquier consulta o solicitud adicional. Gracias nuevamente por elegir Queirolo Autos. Nos aseguraremos de que su experiencia con nosotros sea satisfactoria y profesional. 
+
+
+Atentamente, Queirolo Autos.`
+                                };
 
                 transporter.sendMail(mailOptions, (error, info) => {
                     if (error) {
@@ -232,6 +262,7 @@ app.post('/agregar-consignacion', isAuthenticated, (req, res) => {
             });
         });
     });
+});
 });
 
 // Ruta para mostrar todas las consignaciones con paginación y filtros
