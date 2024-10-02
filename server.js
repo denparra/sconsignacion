@@ -199,8 +199,8 @@ app.post('/agregar-consignacion', isAuthenticated, (req, res) => {
             const vehiculoId = result.insertId; // Obtener el ID del vehículo insertado
 
             // Insertar datos en la tabla `consignaciones`
-            const consignacionSql = `INSERT INTO consignaciones (id_cliente, id_vehiculo, id_consignadora, fecha_consignacion, precio_publicacion, tipo_venta)
-                                     VALUES (?, ?, ?, ?, ?, ?)`;
+            const consignacionSql = `INSERT INTO consignaciones (id_cliente, id_vehiculo, id_consignadora, fecha_consignacion, precio_publicacion, tipo_venta, estado)
+            VALUES (?, ?, ?, ?, ?, ?, 'DISPONIBLE')`;
             pool.query(consignacionSql, [clienteId, vehiculoId, id_consignadora, fecha_consignacion, precio_publicacion, tipo_venta], (err, result) => {
                 if (err) {
                     console.error('Error al insertar la consignación:', err);
@@ -226,6 +226,7 @@ app.post('/agregar-consignacion', isAuthenticated, (req, res) => {
                     const mailOptions = {
                         from: 'infoautorecente@gmail.com',
                         to: correo,  // Enviar al correo del cliente
+                        cc: ['dparra@queirolo.cl', 'barbara.acosta@queirolo.cl', 'ksarria@queirolo.cl', 'mario@queirolo.cl'],  // Correos en copia
                         subject: 'Confirmación de Consignación de su Vehículo',
                         text: `Buen día, estimado/a ${nombre_apellido}, Agradecemos sinceramente la confianza depositada en Queirolo Autos para gestionar la consignación de su vehículo. Nos complace informarle que su ${vehiculo} ${marca} ${modelo} ${anio} ha sido ingresado exitosamente en nuestro sistema y actualmente se encuentra en proceso de preparación para su pronta publicación en nuestras instalaciones.
 
@@ -265,47 +266,56 @@ Atentamente, Queirolo Autos.`
 });
 });
 
-// Ruta para mostrar todas las consignaciones con paginación y filtros
-app.get('/consultas-consignaciones', isAuthenticated, (req, res) => {
-    const limit = 10; // Número de registros por página
-    const page = parseInt(req.query.page) || 1; // Página actual
-    const offset = (page - 1) * limit; // Cálculo del desplazamiento (offset)
+                            // Ruta para mostrar todas las consignaciones con paginación y filtros
+                            app.get('/consultas-consignaciones', isAuthenticated, (req, res) => {
+                                const limit = 10; // Número de registros por página
+                                const page = parseInt(req.query.page) || 1; // Página actual
+                                const offset = (page - 1) * limit; // Cálculo del desplazamiento (offset)
 
-    const { mes, consignadora, patente } = req.query; // Obtener filtros adicionales
+                                const { mes, consignadora, patente, estado } = req.query; // Agregar 'estado' a los filtros
 
-    let sql = `SELECT consignaciones.id_consignacion, clientes.nombre_apellido, clientes.rut_cliente, 
-               vehiculos.vehiculo, vehiculos.patente, consignaciones.fecha_consignacion, 
-               consignaciones.precio_publicacion, consignaciones.tipo_venta, consignadoras.nombre AS consignadora
-               FROM consignaciones 
-               JOIN clientes ON consignaciones.id_cliente = clientes.id_cliente 
-               JOIN vehiculos ON consignaciones.id_vehiculo = vehiculos.id_vehiculo
-               JOIN consignadoras ON consignaciones.id_consignadora = consignadoras.id_consignadora
-               WHERE 1=1`;
-    let queryParams = [];
+                                     let sql = `SELECT consignaciones.id_consignacion, clientes.nombre_apellido, clientes.rut_cliente, 
+                                    vehiculos.vehiculo, vehiculos.patente, consignaciones.fecha_consignacion, 
+                                    consignaciones.precio_publicacion, consignaciones.tipo_venta, consignaciones.estado, 
+                                    consignadoras.nombre AS consignadora
+                                    FROM consignaciones 
+                                    JOIN clientes ON consignaciones.id_cliente = clientes.id_cliente 
+                                    JOIN vehiculos ON consignaciones.id_vehiculo = vehiculos.id_vehiculo
+                                    JOIN consignadoras ON consignaciones.id_consignadora = consignadoras.id_consignadora
+                                    WHERE 1=1`;
 
-    if (mes) {
-        sql += ` AND MONTH(consignaciones.fecha_consignacion) = ?`;
-        queryParams.push(mes);
-    }
+                            let queryParams = [];
 
-    if (consignadora) {
-        sql += ` AND consignadoras.nombre LIKE ?`;
-        queryParams.push(`%${consignadora}%`);
-    }
+                            // Agregar condiciones opcionales si se seleccionan filtros
+                            if (mes) {
+                                sql += ` AND MONTH(consignaciones.fecha_consignacion) = ?`;
+                                queryParams.push(mes);
+                            }
 
-    if (patente) {
-        sql += ` AND vehiculos.patente LIKE ?`;
-        queryParams.push(`%${patente}%`);
-    }
+                            if (consignadora) {
+                                sql += ` AND consignadoras.nombre LIKE ?`;
+                                queryParams.push(`%${consignadora}%`);
+                            }
 
-    sql += ` ORDER BY consignaciones.fecha_consignacion DESC LIMIT ? OFFSET ?`;
-    queryParams.push(limit, offset);
+                            if (patente) {
+                                sql += ` AND vehiculos.patente LIKE ?`;
+                                queryParams.push(`%${patente}%`);
+                            }
 
-    pool.query(sql, queryParams, (err, results) => {
-        if (err) {
-            console.error('Error al consultar las consignaciones:', err);
-            return res.status(500).send('Error al consultar las consignaciones');
-        }
+                            // Filtro por estado
+                            if (estado) {
+                                sql += ` AND consignaciones.estado = ?`;
+                                queryParams.push(estado);
+                            }
+
+                                    sql += ` ORDER BY consignaciones.fecha_consignacion DESC LIMIT ? OFFSET ?`;
+                                    queryParams.push(limit, offset);
+
+                                pool.query(sql, queryParams, (err, results) => {
+                                    if (err) {
+                                        console.error('Error al consultar las consignaciones:', err);
+                                        return res.status(500).send('Error al consultar las consignaciones');
+                                    }
 
         // Obtener la lista de consignadoras para el filtro
         pool.query('SELECT nombre FROM consignadoras', (err, consignadoras) => {
@@ -337,11 +347,21 @@ app.get('/consultas-consignaciones', isAuthenticated, (req, res) => {
                                   <select name="consignadora" id="consignadora">
                                     <option value="">Todas</option>`;
 
-            consignadoras.forEach(consignadoraItem => {
-                responseHTML += `<option value="${consignadoraItem.nombre}">${consignadoraItem.nombre}</option>`;
-            });
+                                    consignadoras.forEach(consignadoraItem => {
+                                        responseHTML += `<option value="${consignadoraItem.nombre}">${consignadoraItem.nombre}</option>`;
+                                    });
 
-            responseHTML += `</select>
+                                    responseHTML += `</select>
+
+                                    <label for="estado">Filtrar por Estado:</label>
+
+                                    <select name="estado" id="estado">
+                                    <option value="">Todos</option> <!-- Para mostrar todas las consignaciones -->
+                                    <option value="DISPONIBLE">Disponible</option>
+                                    <option value="VENDIDO">Vendido</option>
+                                    <option value="RETIRADO">Retirado</option>
+                                    </select>
+
 
                                   <label for="patente">Patente:</label>
                                   <input type="text" name="patente" id="patente" placeholder="Ingrese patente">
@@ -358,6 +378,7 @@ app.get('/consultas-consignaciones', isAuthenticated, (req, res) => {
                                     <th>Fecha</th>
                                     <th>Precio</th>
                                     <th>Tipo de Venta</th>
+                                    <th>Estado</th>
                                     <th>Consignadora</th>
                                     <th>Acciones</th>
                                   </tr>`;
@@ -374,6 +395,7 @@ app.get('/consultas-consignaciones', isAuthenticated, (req, res) => {
                       <td>${consignacion.fecha_consignacion}</td>
                       <td>$${precioFormateado}</td>
                       <td>${consignacion.tipo_venta}</td>
+                      <td>${consignacion.estado}</td> <!-- Nueva columna para el estado -->
                       <td>${consignacion.consignadora}</td>
                       <td><a href="/contratos.html?id_consignacion=${consignacion.id_consignacion}">Ver Contrato</a></td>
                     </tr>`;
