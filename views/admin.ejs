@@ -1,0 +1,201 @@
+<!-- views/admin.ejs -->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Administración - Queirolo Autos</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
+    <!-- Custom Styles (Opcional) -->
+    <style>
+        body {
+            padding-top: 70px;
+        }
+        .tab-content {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Incluir el Partial del Navbar -->
+    <%- include('partials/navbar') %>
+
+    <!-- Contenido Principal -->
+    <div class="container mt-4">
+        <h1 class="mb-4">Panel de Administración</h1>
+
+        <!-- Pestañas para Separar Consignaciones, Clientes y Vehículos -->
+        <ul class="nav nav-tabs" id="adminTab" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="consignaciones-tab" data-toggle="tab" href="#consignaciones" role="tab" aria-controls="consignaciones" aria-selected="true">Consignaciones</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="clientes-tab" data-toggle="tab" href="#clientes" role="tab" aria-controls="clientes" aria-selected="false">Clientes</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="vehiculos-tab" data-toggle="tab" href="#vehiculos" role="tab" aria-controls="vehiculos" aria-selected="false">Vehículos</a>
+            </li>
+        </ul>
+        <div class="tab-content" id="adminTabContent">
+            <!-- Consignaciones Tab -->
+            <div class="tab-pane fade show active" id="consignaciones" role="tabpanel" aria-labelledby="consignaciones-tab">
+                <div class="mt-4">
+                    <table id="consignacionesTable" class="display table table-bordered table-striped">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Vehículo</th>
+                                <th>Marca</th>
+                                <th>Modelo</th>
+                                <th>Año</th>
+                                <th>Patente</th>
+                                <th>Fecha de Consignación</th>
+                                <th>Precio Publicación</th>
+                                <th>Tipo de Venta</th>
+                                <th>Estado</th>
+                                <th>Consignadora</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% consignaciones.forEach(consignacion => { %>
+                                <tr>
+                                    <td><%= consignacion.id_consignacion %></td>
+                                    <td><%= consignacion.cliente %></td>
+                                    <td><%= consignacion.vehiculo %></td>
+                                    <td><%= consignacion.marca %></td>
+                                    <td><%= consignacion.modelo %></td>
+                                    <td><%= consignacion.anio %></td>
+                                    <td><%= consignacion.patente %></td>
+                                    <td><%= consignacion.fecha_consignacion.toLocaleDateString('es-CL') %></td>
+                                    <td>$<%= formatNumber(consignacion.precio_publicacion) %></td>
+                                    <td><%= consignacion.tipo_venta %></td>
+                                    <td><%= consignacion.estado %></td>
+                                    <td><%= consignacion.consignadora %></td>
+                                    <td>
+                                        <a href="/admin/editar-consignacion/<%= consignacion.id_consignacion %>" class="btn btn-sm btn-warning">Editar</a>
+                                        <a href="/admin/eliminar-consignacion/<%= consignacion.id_consignacion %>" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de eliminar esta consignación?');">Eliminar</a>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Clientes Tab -->
+            <div class="tab-pane fade" id="clientes" role="tabpanel" aria-labelledby="clientes-tab">
+                <div class="mt-4">
+                    <table id="clientesTable" class="display table table-bordered table-striped">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>RUT</th>
+                                <th>Nombre y Apellido</th>
+                                <th>Dirección</th>
+                                <th>Teléfono</th>
+                                <th>Correo</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% clientes.forEach(cliente => { %>
+                                <tr>
+                                    <td><%= cliente.id_cliente %></td>
+                                    <td><%= cliente.rut_cliente %></td>
+                                    <td><%= cliente.nombre_apellido %></td>
+                                    <td><%= cliente.direccion %></td>
+                                    <td><%= cliente.telefono %></td>
+                                    <td><%= cliente.correo %></td>
+                                    <td>
+                                        <a href="/admin/editar-cliente/<%= cliente.id_cliente %>" class="btn btn-sm btn-warning">Editar</a>
+                                        <a href="/admin/eliminar-cliente/<%= cliente.id_cliente %>" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de eliminar este cliente?');">Eliminar</a>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Vehículos Tab -->
+            <div class="tab-pane fade" id="vehiculos" role="tabpanel" aria-labelledby="vehiculos-tab">
+                <div class="mt-4">
+                    <table id="vehiculosTable" class="display table table-bordered table-striped">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Tipo</th>
+                                <th>Marca</th>
+                                <th>Modelo</th>
+                                <th>Año</th>
+                                <th>Chasis</th>
+                                <th>Número de Motor</th>
+                                <th>Patente</th>
+                                <th>Kilometraje</th>
+                                <th>Permiso de Circulación</th>
+                                <th>Revisión Técnica</th>
+                                <th>Seguro Obligatorio</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% vehiculos.forEach(vehiculo => { %>
+                                <tr>
+                                    <td><%= vehiculo.id_vehiculo %></td>
+                                    <td><%= vehiculo.vehiculo %></td>
+                                    <td><%= vehiculo.marca %></td>
+                                    <td><%= vehiculo.modelo %></td>
+                                    <td><%= vehiculo.anio %></td>
+                                    <td><%= vehiculo.chasis %></td>
+                                    <td><%= vehiculo.num_motor %></td>
+                                    <td><%= vehiculo.patente %></td>
+                                    <td><%= vehiculo.kilometraje %> km</td>
+                                    <td><%= vehiculo.permiso_circulacion ? 'Sí' : 'No' %></td>
+                                    <td><%= vehiculo.revision_tecnica ? 'Sí' : 'No' %></td>
+                                    <td><%= vehiculo.seguro_obligatorio ? 'Sí' : 'No' %></td>
+                                    <td>
+                                        <a href="/admin/editar-vehiculo/<%= vehiculo.id_vehiculo %>" class="btn btn-sm btn-warning">Editar</a>
+                                        <a href="/admin/eliminar-vehiculo/<%= vehiculo.id_vehiculo %>" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de eliminar este vehículo?');">Eliminar</a>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts de jQuery, Popper.js, Bootstrap y DataTables -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#consignacionesTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
+                }
+            });
+            $('#clientesTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
+                }
+            });
+            $('#vehiculosTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
+                }
+            });
+        });
+    </script>
+</body>
+</html>

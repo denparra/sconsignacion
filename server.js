@@ -13,8 +13,37 @@ require('dotenv').config(); // Cargar variables de entorno
 
 const app = express();
 
-// Configurar body-parser para manejar datos del formulario
+// ===== Configuraciones Básicas =====
+
+// Configurar body-parser para manejar datos del formulario y JSON
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json()); // Agregar esta línea
+
+// Ruta para verificar si un RUT ya existe
+app.post('/verificar-rut', (req, res) => {
+    const { rut_cliente } = req.body;
+
+    if (!rut_cliente) {
+        return res.status(400).json({ error: 'RUT es requerido.' });
+    }
+
+    // Consulta a la base de datos para verificar el RUT
+    pool.query('SELECT * FROM clientes WHERE rut_cliente = ?', [rut_cliente], (error, results) => {
+        if (error) {
+            console.error('Error al verificar el RUT:', error);
+            return res.status(500).json({ error: 'Error en el servidor.' });
+        }
+
+        if (results.length > 0) {
+            // RUT existe
+            const cliente = results[0];
+            return res.json({ existe: true, cliente });
+        } else {
+            // RUT no existe
+            return res.json({ existe: false });
+        }
+    });
+});
 
 // Configurar Express para confiar en el proxy
 app.set('trust proxy', 1);
@@ -45,6 +74,16 @@ app.use(session({
 
 // Configurar connect-flash
 app.use(flash());
+
+// Middleware para agregar variables globales a todas las vistas
+app.use((req, res, next) => {
+    res.locals.formatNumber = formatNumber;
+    res.locals.iniciales = req.session.iniciales; // Para el navbar y otras vistas
+    res.locals.error = req.flash('error');
+    res.locals.success = req.flash('success');
+    next();
+});
+
 
 // Configurar el motor de vistas a EJS
 app.set('view engine', 'ejs');
@@ -100,8 +139,8 @@ function formatNumber(number) {
 // Ruta GET para la raíz '/'
 app.get('/', (req, res) => {
     if (req.session.userId) {
-        // Si el usuario está autenticado, redirige a index.html
-        res.redirect('/index.html');
+        // Si el usuario está autenticado, redirige a index.ejs
+        res.redirect('/index');
     } else {
         // Si no está autenticado, redirige a la página de login
         res.redirect('/login');
@@ -136,7 +175,9 @@ app.post('/login', (req, res) => {
         if (usuario.contrasena === contrasena) { // Considera encriptar la contraseña en producción
             // Contraseña correcta, establecer sesión
             req.session.userId = usuario.id_usuario;
-            res.redirect('/index.html'); // Redirige a la página protegida
+            req.session.iniciales = usuario.iniciales; // Almacenar 'iniciales' en la sesión
+            // console.log(`Usuario autenticado: ${usuario.nombre_usuario}, Iniciales: ${usuario.iniciales}`); // Verificación
+            res.redirect('/index'); // Redirige a la página protegida
         } else {
             // Contraseña incorrecta
             req.flash('error', 'Contraseña incorrecta.');
@@ -144,6 +185,16 @@ app.post('/login', (req, res) => {
         }
     });
 });
+
+// Middleware para verificar si el usuario es administrador
+function isAdmin(req, res, next) {
+    if (req.session.iniciales === 'ADM') {
+        return next(); // El usuario es administrador, continuar con la siguiente función
+    } else {
+        res.status(403).send('Acceso denegado. No tienes permisos para realizar esta acción.');
+    }
+}
+
 
 // Ruta de logout
 app.get('/logout', (req, res) => {
@@ -155,10 +206,100 @@ app.get('/logout', (req, res) => {
     });
 });
 
-// Ruta para servir el formulario HTML protegido
-app.get('/index.html', isAuthenticated, (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html')); // Sirve el archivo HTML del formulario
+// Ruta para servir la vista principal protegida
+app.get('/index', isAuthenticated, (req, res) => {
+    res.render('index', { 
+        iniciales: req.session.iniciales 
+        // Puedes pasar otros datos si es necesario
+    }); // Renderiza 'index.ejs' con los datos de la sesión
 });
+
+// ===== Paso 3: Crear la Ruta para la Vista de Administración =====
+
+app.get('/admin', isAuthenticated, isAdmin, (req, res) => {
+    // Consultar consignaciones, clientes y vehículos
+    const consignacionesSql = `
+        SELECT 
+            consignaciones.id_consignacion,
+            clientes.nombre_apellido AS cliente,
+            vehiculos.vehiculo,
+            vehiculos.marca,
+            vehiculos.modelo,
+            vehiculos.anio,
+            vehiculos.patente,
+            consignaciones.fecha_consignacion,
+            consignaciones.precio_publicacion,
+            consignaciones.tipo_venta,
+            consignaciones.estado,
+            consignadoras.nombre AS consignadora
+        FROM consignaciones
+        JOIN clientes ON consignaciones.id_cliente = clientes.id_cliente
+        JOIN vehiculos ON consignaciones.id_vehiculo = vehiculos.id_vehiculo
+        JOIN consignadoras ON consignaciones.id_consignadora = consignadoras.id_consignadora
+    `;
+
+    const clientesSql = `
+        SELECT 
+            id_cliente,
+            rut_cliente,
+            nombre_apellido,
+            direccion,
+            telefono,
+            correo
+        FROM clientes
+    `;
+
+    const vehiculosSql = `
+        SELECT 
+            id_vehiculo,
+            vehiculo,
+            marca,
+            modelo,
+            anio,
+            chasis,
+            num_motor,
+            patente,
+            kilometraje,
+            permiso_circulacion,
+            revision_tecnica,
+            seguro_obligatorio
+        FROM vehiculos
+    `;
+
+    // Ejecutar consultas en paralelo
+    Promise.all([
+        new Promise((resolve, reject) => {
+            pool.query(consignacionesSql, (err, results) => {
+                if (err) return reject(err);
+                resolve(results);
+            });
+        }),
+        new Promise((resolve, reject) => {
+            pool.query(clientesSql, (err, results) => {
+                if (err) return reject(err);
+                resolve(results);
+            });
+        }),
+        new Promise((resolve, reject) => {
+            pool.query(vehiculosSql, (err, results) => {
+                if (err) return reject(err);
+                resolve(results);
+            });
+        })
+    ]).then(([consignaciones, clientes, vehiculos]) => {
+        res.render('admin', { 
+            consignaciones, 
+            clientes, 
+            vehiculos, 
+            formatNumber: formatNumber // Pasar la función al contexto de EJS
+        });
+    }).catch(err => {
+        console.error('Error al obtener datos para la administración:', err);
+        res.status(500).send('Error al obtener datos para la administración.');
+    });
+});
+
+
 
 // Ruta para procesar el envío de los datos del formulario protegido
 app.post('/agregar-consignacion', isAuthenticated, (req, res) => {
@@ -173,7 +314,7 @@ app.post('/agregar-consignacion', isAuthenticated, (req, res) => {
     // Validar que id_consignadora esté presente y sea válido
     if (!id_consignadora) {
         req.flash('error', 'Debe seleccionar una consignadora.');
-        return res.redirect('/index.html');
+        return res.redirect('/index');
     }
 
     // Insertar datos en la tabla `clientes`
@@ -226,7 +367,7 @@ app.post('/agregar-consignacion', isAuthenticated, (req, res) => {
                     const mailOptions = {
                         from: 'infoautorecente@gmail.com',
                         to: correo,  // Enviar al correo del cliente
-                        cc: ['dparra@queirolo.cl', 'barbara.acosta@queirolo.cl', 'ksarria@queirolo.cl', 'mario@queirolo.cl'],  // Correos en copia
+                        cc: ['dparra@queirolo.cl'/*, 'barbara.acosta@queirolo.cl', 'ksarria@queirolo.cl', 'mario@queirolo.cl'*/],  // Correos en copia
                         subject: 'Confirmación de Consignación de su Vehículo',
                         text: `Buen día, estimado/a ${nombre_apellido}, Agradecemos sinceramente la confianza depositada en Queirolo Autos para gestionar la consignación de su vehículo. Nos complace informarle que su ${vehiculo} ${marca} ${modelo} ${anio} ha sido ingresado exitosamente en nuestro sistema y actualmente se encuentra en proceso de preparación para su pronta publicación en nuestras instalaciones.
 
@@ -266,56 +407,58 @@ Atentamente, Queirolo Autos.`
 });
 });
 
-                            // Ruta para mostrar todas las consignaciones con paginación y filtros
-                            app.get('/consultas-consignaciones', isAuthenticated, (req, res) => {
-                                const limit = 10; // Número de registros por página
-                                const page = parseInt(req.query.page) || 1; // Página actual
-                                const offset = (page - 1) * limit; // Cálculo del desplazamiento (offset)
+                     // Ruta para mostrar todas las consignaciones con paginación y filtros
+app.get('/consultas-consignaciones', isAuthenticated, (req, res) => {
+    const limit = 10; // Número de registros por página
+    const page = parseInt(req.query.page) || 1; // Página actual
+    const offset = (page - 1) * limit; // Cálculo del desplazamiento (offset)
 
-                                const { mes, consignadora, patente, estado } = req.query; // Agregar 'estado' a los filtros
+    const { mes, consignadora, patente, estado } = req.query; // Agregar 'estado' a los filtros
 
-                                     let sql = `SELECT consignaciones.id_consignacion, clientes.nombre_apellido, clientes.rut_cliente, 
-                                    vehiculos.vehiculo, vehiculos.patente, consignaciones.fecha_consignacion, 
-                                    consignaciones.precio_publicacion, consignaciones.tipo_venta, consignaciones.estado, 
-                                    consignadoras.nombre AS consignadora
-                                    FROM consignaciones 
-                                    JOIN clientes ON consignaciones.id_cliente = clientes.id_cliente 
-                                    JOIN vehiculos ON consignaciones.id_vehiculo = vehiculos.id_vehiculo
-                                    JOIN consignadoras ON consignaciones.id_consignadora = consignadoras.id_consignadora
-                                    WHERE 1=1`;
+    let sql = `SELECT consignaciones.id_consignacion, clientes.nombre_apellido, clientes.rut_cliente, 
+        vehiculos.vehiculo, vehiculos.patente, consignaciones.fecha_consignacion, 
+        consignaciones.precio_publicacion, consignaciones.tipo_venta, consignaciones.estado, 
+        consignadoras.nombre AS consignadora
+        FROM consignaciones 
+        JOIN clientes ON consignaciones.id_cliente = clientes.id_cliente 
+        JOIN vehiculos ON consignaciones.id_vehiculo = vehiculos.id_vehiculo
+        JOIN consignadoras ON consignaciones.id_consignadora = consignadoras.id_consignadora
+        WHERE 1=1`;
 
-                            let queryParams = [];
+    let queryParams = [];
 
-                            // Agregar condiciones opcionales si se seleccionan filtros
-                            if (mes) {
-                                sql += ` AND MONTH(consignaciones.fecha_consignacion) = ?`;
-                                queryParams.push(mes);
-                            }
+    // Agregar condiciones opcionales si se seleccionan filtros
+    if (mes) {
+        sql += ` AND MONTH(consignaciones.fecha_consignacion) = ?`;
+        queryParams.push(mes);
+    }
 
-                            if (consignadora) {
-                                sql += ` AND consignadoras.nombre LIKE ?`;
-                                queryParams.push(`%${consignadora}%`);
-                            }
+    if (consignadora) {
+        sql += ` AND consignadoras.nombre LIKE ?`;
+        queryParams.push(`%${consignadora}%`);
+    }
 
-                            if (patente) {
-                                sql += ` AND vehiculos.patente LIKE ?`;
-                                queryParams.push(`%${patente}%`);
-                            }
+    if (patente) {
+        sql += ` AND vehiculos.patente LIKE ?`;
+        queryParams.push(`%${patente}%`);
+    }
 
-                            // Filtro por estado
-                            if (estado) {
-                                sql += ` AND consignaciones.estado = ?`;
-                                queryParams.push(estado);
-                            }
+    // Filtro por estado
+    if (estado) {
+        sql += ` AND consignaciones.estado = ?`;
+        queryParams.push(estado);
+    }
 
-                                    sql += ` ORDER BY consignaciones.fecha_consignacion DESC LIMIT ? OFFSET ?`;
-                                    queryParams.push(limit, offset);
+    // Agregar ordenamiento y paginación
+    sql += ` ORDER BY consignaciones.fecha_consignacion DESC LIMIT ? OFFSET ?`;
+    queryParams.push(limit, offset);
 
-                                pool.query(sql, queryParams, (err, results) => {
-                                    if (err) {
-                                        console.error('Error al consultar las consignaciones:', err);
-                                        return res.status(500).send('Error al consultar las consignaciones');
-                                    }
+    // Ejecutar la consulta principal
+    pool.query(sql, queryParams, (err, results) => {
+        if (err) {
+            console.error('Error al consultar las consignaciones:', err);
+            return res.status(500).send('Error al consultar las consignaciones');
+        }
 
         // Obtener la lista de consignadoras para el filtro
         pool.query('SELECT nombre FROM consignadoras', (err, consignadoras) => {
@@ -324,98 +467,17 @@ Atentamente, Queirolo Autos.`
                 return res.status(500).send('Error al obtener consignadoras');
             }
 
-            let responseHTML = `<h1>Listado de Consignaciones</h1>
-                                <form method="GET" action="/consultas-consignaciones">
-                                  <label for="mes">Filtrar por mes:</label>
-                                  <select name="mes" id="mes">
-                                    <option value="">Todos</option>
-                                    <option value="1">Enero</option>
-                                    <option value="2">Febrero</option>
-                                    <option value="3">Marzo</option>
-                                    <option value="4">Abril</option>
-                                    <option value="5">Mayo</option>
-                                    <option value="6">Junio</option>
-                                    <option value="7">Julio</option>
-                                    <option value="8">Agosto</option>
-                                    <option value="9">Septiembre</option>
-                                    <option value="10">Octubre</option>
-                                    <option value="11">Noviembre</option>
-                                    <option value="12">Diciembre</option>
-                                  </select>
-
-                                  <label for="consignadora">Consignadora:</label>
-                                  <select name="consignadora" id="consignadora">
-                                    <option value="">Todas</option>`;
-
-                                    consignadoras.forEach(consignadoraItem => {
-                                        responseHTML += `<option value="${consignadoraItem.nombre}">${consignadoraItem.nombre}</option>`;
-                                    });
-
-                                    responseHTML += `</select>
-
-                                    <label for="estado">Filtrar por Estado:</label>
-
-                                    <select name="estado" id="estado">
-                                    <option value="">Todos</option> <!-- Para mostrar todas las consignaciones -->
-                                    <option value="DISPONIBLE">Disponible</option>
-                                    <option value="VENDIDO">Vendido</option>
-                                    <option value="RETIRADO">Retirado</option>
-                                    </select>
-
-
-                                  <label for="patente">Patente:</label>
-                                  <input type="text" name="patente" id="patente" placeholder="Ingrese patente">
-
-                                  <button type="submit" class="btn btn-primary">Filtrar</button>
-                                </form>
-                                <table border="1" cellpadding="5" class="mt-4">
-                                  <tr>
-                                    <th>ID Consignación</th>
-                                    <th>Cliente</th>
-                                    <th>RUT Cliente</th>
-                                    <th>Vehículo</th>
-                                    <th>Patente</th>
-                                    <th>Fecha</th>
-                                    <th>Precio</th>
-                                    <th>Tipo de Venta</th>
-                                    <th>Estado</th>
-                                    <th>Consignadora</th>
-                                    <th>Acciones</th>
-                                  </tr>`;
-
-            results.forEach(consignacion => {
-                const precioFormateado = formatNumber(consignacion.precio_publicacion);
-                responseHTML += `
-                    <tr>
-                      <td>${consignacion.id_consignacion}</td>
-                      <td>${consignacion.nombre_apellido}</td>
-                      <td>${consignacion.rut_cliente}</td>
-                      <td>${consignacion.vehiculo}</td>
-                      <td>${consignacion.patente}</td>
-                      <td>${consignacion.fecha_consignacion}</td>
-                      <td>$${precioFormateado}</td>
-                      <td>${consignacion.tipo_venta}</td>
-                      <td>${consignacion.estado}</td> <!-- Nueva columna para el estado -->
-                      <td>${consignacion.consignadora}</td>
-                      <td><a href="/contratos.html?id_consignacion=${consignacion.id_consignacion}">Ver Contrato</a></td>
-                    </tr>`;
+            res.render('consultas-consignaciones', { 
+                consignaciones: results, 
+                consignadoras: consignadoras, 
+                page: page, 
+                limit: limit, 
+                mes: mes || '', 
+                consignadora: consignadora || '', 
+                estado: estado || '', 
+                patente: patente || '',
+                formatNumber: formatNumber // Pasar la función al contexto de EJS
             });
-
-            responseHTML += '</table>';
-
-            // Generar botones de paginación
-            const nextPage = page + 1;
-            const prevPage = page - 1;
-
-            responseHTML += `<div style="margin-top: 20px;">`;
-            if (page > 1) {
-                responseHTML += `<a href="/consultas-consignaciones?page=${prevPage}&mes=${mes}&consignadora=${consignadora}&patente=${patente}" class="btn btn-primary">Página Anterior</a>`;
-            }
-            responseHTML += `<a href="/consultas-consignaciones?page=${nextPage}&mes=${mes}&consignadora=${consignadora}&patente=${patente}" class="btn btn-primary" style="margin-left: 10px;">Siguiente Página</a>`;
-            responseHTML += `</div>`;
-
-            responseHTML += '<br><a href="/" class="btn btn-secondary btn-block">Volver al Inicio</a>';
-            res.send(responseHTML);
         });
     });
 });
@@ -489,7 +551,7 @@ app.get('/api/consignadoras', isAuthenticated, (req, res) => {
 });
 
 // Middleware para servir archivos estáticos (después de las rutas específicas)
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname))); // Servir desde raíz
 
 // Iniciar el servidor en el puerto asignado por Railway o en el puerto 3000 localmente
 const PORT = process.env.PORT || 3000;

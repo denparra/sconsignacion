@@ -9,23 +9,28 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">Queirolo Autos</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" 
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-            <ul class="navbar-nav">
+ <!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="/index">Queirolo Autos</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" 
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+        <ul class="navbar-nav">
+            <% if (iniciales === 'ADM') { %>
                 <li class="nav-item">
-                    <a class="nav-link" href="/logout">Cerrar Sesión</a>
+                    <a class="nav-link btn btn-primary text-white mr-2" href="/admin">Administrar</a>
                 </li>
-            </ul>
-        </div>
-    </nav>
+            <% } %>
+            <li class="nav-item">
+                <a class="nav-link" href="/logout">Cerrar Sesión</a>
+            </li>
+        </ul>
+    </div>
+</nav>
 
-    <!-- Contenido Principal -->
+<!-- Contenido Principal -->
     <div class="container">
         <h1 class="text-center my-4">Formulario de Consignación</h1>
         <form action="/agregar-consignacion" method="POST">
@@ -33,25 +38,59 @@
             <div class="card my-3">
                 <div class="card-header">Datos del Cliente</div>
                 <div class="card-body">
-                    <div class="form-group">
-                        <label for="nombre_apellido">Nombre y Apellido:</label>
-                        <input type="text" class="form-control" id="nombre_apellido" name="nombre_apellido" required>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="rut_cliente">RUT:</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="rut_cliente" 
+                                name="rut_cliente" 
+                                required
+                                pattern="^[0-9]{7,8}-?[0-9Kk]$"  
+                                title="Formato válido: XXXXXXXX-Y (X: números, Y: número o K)"
+                                placeholder="Ejemplo: 12345678-9"
+                            >
+                        </div>
+                        <div class="form-group col-md-6 d-flex align-items-end">
+                            <button type="button" class="btn btn-primary" id="verifyRut">Verificar RUT</button>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label for="rut_cliente">RUT:</label>
-                        <input type="text" class="form-control" id="rut_cliente" name="rut_cliente" required>
+                        <label for="nombre_apellido">Nombre y Apellido:</label>
+                        <input type="text" class="form-control" id="nombre_apellido" name="nombre_apellido" required disabled>
                     </div>
                     <div class="form-group">
                         <label for="direccion">Dirección:</label>
-                        <input type="text" class="form-control" id="direccion" name="direccion">
+                        <input type="text" class="form-control" id="direccion" name="direccion" disabled>
                     </div>
                     <div class="form-group">
                         <label for="telefono">Teléfono:</label>
-                        <input type="tel" class="form-control" id="telefono" name="telefono">
+                        <input 
+                            type="tel" 
+                            class="form-control" 
+                            id="telefono" 
+                            name="telefono" 
+                            maxlength="11" 
+                            pattern="\d{9,11}" 
+                            title="Formato válido: 10 a 11 dígitos (por ejemplo: 9888877777)" 
+                            placeholder="988887777" 
+                            required
+                            disabled
+                        >
                     </div>
                     <div class="form-group">
                         <label for="correo">Correo Electrónico:</label>
-                        <input type="email" class="form-control" id="correo" name="correo">
+                        <input 
+                            type="email" 
+                            class="form-control" 
+                            id="correo" 
+                            name="correo" 
+                            placeholder="ejemplo@dominio.com" 
+                            pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" 
+                            required
+                            disabled
+                        >
                     </div>
                     
                     <!-- Nuevo Campo: Consignadora -->
@@ -69,6 +108,7 @@
             <div class="card my-3">
                 <div class="card-header">Datos del Vehículo</div>
                 <div class="card-body">
+                    <!-- Campos del vehículo (sin cambios) -->
                     <div class="form-group">
                         <label for="vehiculo">Tipo de Vehículo:</label>
                         <input type="text" class="form-control" id="vehiculo" name="vehiculo" required>
@@ -150,9 +190,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-    <!-- Script para cargar consignadoras -->
+    <!-- Script para cargar consignadoras y verificar RUT -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Cargar consignadoras
             fetch('/api/consignadoras')
                 .then(response => response.json())
                 .then(data => {
@@ -165,6 +206,57 @@
                     });
                 })
                 .catch(error => console.error('Error al cargar consignadoras:', error));
+
+            // Verificar RUT
+            const verifyRutButton = document.getElementById('verifyRut');
+            verifyRutButton.addEventListener('click', function() {
+                const rut = document.getElementById('rut_cliente').value.trim();
+
+                if (!rut) {
+                    alert('Por favor, ingrese un RUT válido.');
+                    return;
+                }
+
+                fetch('/verificar-rut', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ rut_cliente: rut })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.existe) {
+                        // RUT existe, rellenar los campos y deshabilitarlos
+                        document.getElementById('nombre_apellido').value = data.cliente.nombre_apellido;
+                        document.getElementById('direccion').value = data.cliente.direccion;
+                        document.getElementById('telefono').value = data.cliente.telefono;
+                        document.getElementById('correo').value = data.cliente.correo;
+
+                        document.getElementById('nombre_apellido').disabled = true;
+                        document.getElementById('direccion').disabled = true;
+                        document.getElementById('telefono').disabled = true;
+                        document.getElementById('correo').disabled = true;
+                    } else {
+                        // RUT no existe, habilitar los campos para llenarlos manualmente
+                        alert("No existe, Continua!.");
+
+                        document.getElementById('nombre_apellido').value = '';
+                        document.getElementById('direccion').value = '';
+                        document.getElementById('telefono').value = '';
+                        document.getElementById('correo').value = '';
+
+                        document.getElementById('nombre_apellido').disabled = false;
+                        document.getElementById('direccion').disabled = false;
+                        document.getElementById('telefono').disabled = false;
+                        document.getElementById('correo').disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al verificar el RUT:', error);
+                    alert('Ocurrió un error al verificar el RUT. Inténtelo de nuevo.');
+                });
+            });
         });
     </script>
 
