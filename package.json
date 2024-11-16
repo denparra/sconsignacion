@@ -16,7 +16,8 @@
     "express-mysql-session": "^3.0.3",
     "express-session": "^1.18.0",
     "mysql2": "^3.11.3",
-    "nodemailer": "^6.9.15"
+    "nodemailer": "^6.9.15",
+    "puppeteer": "^23.8.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

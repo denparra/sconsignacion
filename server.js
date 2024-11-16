@@ -9,6 +9,8 @@ const nodemailer = require('nodemailer'); // Requerir Nodemailer
 const session = require('express-session'); // Requerir express-session
 const flash = require('connect-flash'); // Requerir connect-flash
 const MySQLStore = require('express-mysql-session')(session); // Requerir express-mysql-session
+const puppeteer = require('puppeteer');
+const ejs = require('ejs'); // Requerir EJS
 require('dotenv').config(); // Cargar variables de entorno
 
 const app = express();
@@ -118,6 +120,140 @@ pool.getConnection((err, connection) => {
     }
     console.log('Conectado a la base de datos MySQL en Railway');
     connection.release(); // Liberar la conexión
+});
+
+// Ruta para mostrar el contrato
+app.get('/contratos/:id', isAuthenticated, (req, res) => {
+    const idConsignacion = req.params.id;
+
+    // Consulta para obtener los datos de la consignación
+    const sql = `SELECT 
+        consignaciones.id_consignacion AS consignacion_id,
+        consignaciones.fecha_consignacion,
+        consignaciones.precio_publicacion,
+        consignaciones.tipo_venta,
+        clientes.id_cliente AS cliente_id,
+        clientes.rut_cliente,
+        clientes.nombre_apellido,
+        clientes.direccion,
+        clientes.telefono,
+        clientes.correo,
+        vehiculos.id_vehiculo AS vehiculo_id,
+        vehiculos.vehiculo,
+        vehiculos.marca,
+        vehiculos.modelo,
+        vehiculos.anio,
+        vehiculos.chasis,
+        vehiculos.num_motor,
+        vehiculos.patente,
+        vehiculos.kilometraje,
+        vehiculos.permiso_circulacion,
+        vehiculos.revision_tecnica,
+        vehiculos.seguro_obligatorio,
+        consignadoras.id_consignadora,
+        consignadoras.nombre AS consignadora_nombre
+    FROM consignaciones
+    JOIN clientes ON consignaciones.id_cliente = clientes.id_cliente
+    JOIN vehiculos ON consignaciones.id_vehiculo = vehiculos.id_vehiculo
+    JOIN consignadoras ON consignaciones.id_consignadora = consignadoras.id_consignadora
+    WHERE consignaciones.id_consignacion = ?`;
+
+    pool.query(sql, [idConsignacion], (err, results) => {
+        if (err) {
+            console.error('Error al obtener la consignación:', err);
+            return res.status(500).send('Error al obtener la consignación');
+        }
+
+        if (results.length === 0) {
+            return res.status(404).send('Consignación no encontrada');
+        }
+
+        const data = results[0];
+
+        res.render('contratos', { data });
+    });
+});
+
+// Ruta para generar el PDF
+app.get('/generate-pdf/:id', isAuthenticated, async (req, res) => {
+    const idConsignacion = req.params.id;
+
+    // Consulta para obtener los datos de la consignación
+    const sql = `SELECT 
+        consignaciones.id_consignacion AS consignacion_id,
+        consignaciones.fecha_consignacion,
+        consignaciones.precio_publicacion,
+        consignaciones.tipo_venta,
+        clientes.id_cliente AS cliente_id,
+        clientes.rut_cliente,
+        clientes.nombre_apellido,
+        clientes.direccion,
+        clientes.telefono,
+        clientes.correo,
+        vehiculos.id_vehiculo AS vehiculo_id,
+        vehiculos.vehiculo,
+        vehiculos.marca,
+        vehiculos.modelo,
+        vehiculos.anio,
+        vehiculos.chasis,
+        vehiculos.num_motor,
+        vehiculos.patente,
+        vehiculos.kilometraje,
+        vehiculos.permiso_circulacion,
+        vehiculos.revision_tecnica,
+        vehiculos.seguro_obligatorio,
+        consignadoras.id_consignadora,
+        consignadoras.nombre AS consignadora_nombre
+    FROM consignaciones
+    JOIN clientes ON consignaciones.id_cliente = clientes.id_cliente
+    JOIN vehiculos ON consignaciones.id_vehiculo = vehiculos.id_vehiculo
+    JOIN consignadoras ON consignaciones.id_consignadora = consignadoras.id_consignadora
+    WHERE consignaciones.id_consignacion = ?`;
+
+    pool.query(sql, [idConsignacion], async (err, results) => {
+        if (err) {
+            console.error('Error al obtener la consignación:', err);
+            return res.status(500).send('Error al obtener la consignación');
+        }
+
+        if (results.length === 0) {
+            return res.status(404).send('Consignación no encontrada');
+        }
+
+        const data = results[0];
+
+        try {
+            // Renderizar la plantilla EJS con los datos
+            const html = await ejs.renderFile(
+                path.join(__dirname, 'views', 'contratos.ejs'),
+                { data },
+                { async: true }
+            );
+
+            // Generar el PDF con Puppeteer
+            const browser = await puppeteer.launch({
+                args: ['--no-sandbox', '--disable-setuid-sandbox']
+            });
+            const page = await browser.newPage();
+            await page.setContent(html, { waitUntil: 'networkidle0' });
+
+            const pdfBuffer = await page.pdf({
+                format: 'A4',
+                printBackground: true,
+                margin: { top: '10mm', bottom: '10mm', left: '10mm', right: '10mm' }
+            });
+
+            await browser.close();
+
+            // Enviar el PDF al cliente
+            res.setHeader('Content-Type', 'application/pdf');
+res.setHeader('Content-Disposition', 'attachment; filename=contrato-consignacion.pdf');
+res.end(pdfBuffer);
+        } catch (error) {
+            console.error('Error al generar el PDF:', error);
+            res.status(500).send('Error al generar el PDF');
+        }
+    });
 });
 
 // Configurar Nodemailer
@@ -419,9 +555,10 @@ Atentamente, Queirolo Autos.`
                         }
                         console.log('Correo enviado: ' + info.response);
 
-                        // Redirigir a contratos.html con el ID de la consignación
-                        res.redirect(`/contratos.html?id_consignacion=${consignacionId}`);
-                    });
+                         // Después de insertar la consignación y enviar el correo
+                            // Redirigir a /contratos/:id_consignacion
+                            res.redirect(`/contratos/${consignacionId}`);
+                        });
                 });
             });
         });

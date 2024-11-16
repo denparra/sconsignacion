@@ -136,7 +136,8 @@
                         <td><%= consignacion.estado %></td>
                         <td><%= consignacion.consignadora %></td>
                         <td>
-                            <a href="/contratos.html?id_consignacion=<%= consignacion.id_consignacion %>" class="btn btn-sm btn-info">Ver Contrato</a>
+                            <a href="/contratos/<%= consignacion.id_consignacion %>" class="btn btn-sm btn-info">Ver Contrato</a>
+
                             <% if (iniciales === 'ADM') { %>
                                 <!-- Acciones exclusivas para administradores -->
                                 <a href="/admin/editar-consignacion/<%= consignacion.id_consignacion %>" class="btn btn-sm btn-warning">Editar</a>
