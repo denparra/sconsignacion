@@ -300,7 +300,7 @@ app.get('/admin', isAuthenticated, isAdmin, (req, res) => {
 });
 
 
-
+//AGREGAR CONSIGNACION
 // Ruta para procesar el envío de los datos del formulario protegido
 app.post('/agregar-consignacion', isAuthenticated, (req, res) => {
     const {
@@ -308,7 +308,7 @@ app.post('/agregar-consignacion', isAuthenticated, (req, res) => {
         vehiculo, marca, modelo, anio, chasis, num_motor, patente, kilometraje,
         permiso_circulacion, revision_tecnica, seguro_obligatorio,
         fecha_consignacion, precio_publicacion, tipo_venta,
-        id_consignadora // Nuevo campo agregado
+        id_consignadora
     } = req.body;
 
     // Validar que id_consignadora esté presente y sea válido
@@ -317,17 +317,38 @@ app.post('/agregar-consignacion', isAuthenticated, (req, res) => {
         return res.redirect('/index');
     }
 
-    // Insertar datos en la tabla `clientes`
-    const clienteSql = `INSERT INTO clientes (rut_cliente, nombre_apellido, direccion, telefono, correo) 
-                        VALUES (?, ?, ?, ?, ?)`;
-    pool.query(clienteSql, [rut_cliente, nombre_apellido, direccion, telefono, correo], (err, result) => {
+    // Comprobar si el cliente ya existe
+    const checkClienteSql = `SELECT id_cliente FROM clientes WHERE rut_cliente = ?`;
+    pool.query(checkClienteSql, [rut_cliente], (err, results) => {
         if (err) {
-            console.error('Error al insertar los datos del cliente:', err);
-            return res.status(500).send('Error al insertar los datos del cliente');
+            console.error('Error al verificar el cliente:', err);
+            return res.status(500).send('Error al verificar el cliente');
         }
 
-        const clienteId = result.insertId; // Obtener el ID del cliente insertado
+        if (results.length > 0) {
+            // El cliente ya existe
+            const clienteId = results[0].id_cliente;
+            // Continuar con la inserción del vehículo y la consignación
+            insertarVehiculoYConsignacion(clienteId);
+        } else {
+            // El cliente no existe, insertar nuevo cliente
+            const clienteSql = `INSERT INTO clientes (rut_cliente, nombre_apellido, direccion, telefono, correo) 
+                                VALUES (?, ?, ?, ?, ?)`;
+            pool.query(clienteSql, [rut_cliente, nombre_apellido, direccion, telefono, correo], (err, result) => {
+                if (err) {
+                    console.error('Error al insertar los datos del cliente:', err);
+                    return res.status(500).send('Error al insertar los datos del cliente');
+                }
 
+                const clienteId = result.insertId; // Obtener el ID del cliente insertado
+
+                // Continuar con la inserción del vehículo y la consignación
+                insertarVehiculoYConsignacion(clienteId);
+            });
+        }
+    });
+
+    function insertarVehiculoYConsignacion(clienteId) {
         // Insertar datos en la tabla `vehiculos`
         const vehiculoSql = `INSERT INTO vehiculos (vehiculo, marca, modelo, anio, chasis, num_motor, patente, kilometraje, permiso_circulacion, revision_tecnica, seguro_obligatorio)
                              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
@@ -351,23 +372,23 @@ app.post('/agregar-consignacion', isAuthenticated, (req, res) => {
                 const consignacionId = result.insertId; // Obtener el ID de la consignación insertada
 
                 // Después de insertar la consignación, obtenemos el nombre de la consignadora
-    pool.query('SELECT nombre FROM consignadoras WHERE id_consignadora = ?', [id_consignadora], (err, result) => {
-        if (err) {
-            console.error('Error al obtener el nombre de la consignadora:', err);
-            return res.status(500).send('Error al obtener la consignadora');
-        }
+                pool.query('SELECT nombre FROM consignadoras WHERE id_consignadora = ?', [id_consignadora], (err, result) => {
+                    if (err) {
+                        console.error('Error al obtener el nombre de la consignadora:', err);
+                        return res.status(500).send('Error al obtener la consignadora');
+                    }
 
-        // Aquí tienes el nombre de la consignadora
-        const consignadora_nombre = result[0].nombre;
+                    // Aquí tienes el nombre de la consignadora
+                    const consignadora_nombre = result[0].nombre;
 
-                // Formatear el precio para el correo
-                const precioFormateado = formatNumber(precio_publicacion);
+                    // Formatear el precio para el correo
+                    const precioFormateado = formatNumber(precio_publicacion);
 
-               // Enviar correo de confirmación
+                    // Enviar correo de confirmación
                     const mailOptions = {
                         from: 'infoautorecente@gmail.com',
                         to: correo,  // Enviar al correo del cliente
-                        cc: ['dparra@queirolo.cl'/*, 'barbara.acosta@queirolo.cl', 'ksarria@queirolo.cl', 'mario@queirolo.cl'*/],  // Correos en copia
+                        cc: ['dparra@queirolo.cl'],  // Correos en copia
                         subject: 'Confirmación de Consignación de su Vehículo',
                         text: `Buen día, estimado/a ${nombre_apellido}, Agradecemos sinceramente la confianza depositada en Queirolo Autos para gestionar la consignación de su vehículo. Nos complace informarle que su ${vehiculo} ${marca} ${modelo} ${anio} ha sido ingresado exitosamente en nuestro sistema y actualmente se encuentra en proceso de preparación para su pronta publicación en nuestras instalaciones.
 
@@ -389,22 +410,22 @@ Estamos a su disposición para cualquier consulta o solicitud adicional. Gracias
 
 
 Atentamente, Queirolo Autos.`
-                                };
+                    };
 
-                transporter.sendMail(mailOptions, (error, info) => {
-                    if (error) {
-                        console.error('Error al enviar el correo:', error);
-                        return res.status(500).send('Consignación registrada, pero no se pudo enviar el correo de confirmación.');
-                    }
-                    console.log('Correo enviado: ' + info.response);
+                    transporter.sendMail(mailOptions, (error, info) => {
+                        if (error) {
+                            console.error('Error al enviar el correo:', error);
+                            return res.status(500).send('Consignación registrada, pero no se pudo enviar el correo de confirmación.');
+                        }
+                        console.log('Correo enviado: ' + info.response);
 
-                    // Redirigir a contratos.html con el ID de la consignación
-                    res.redirect(`/contratos.html?id_consignacion=${consignacionId}`);
+                        // Redirigir a contratos.html con el ID de la consignación
+                        res.redirect(`/contratos.html?id_consignacion=${consignacionId}`);
+                    });
                 });
             });
         });
-    });
-});
+    }
 });
 
                      // Ruta para mostrar todas las consignaciones con paginación y filtros

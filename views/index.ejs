@@ -58,11 +58,11 @@
                     </div>
                     <div class="form-group">
                         <label for="nombre_apellido">Nombre y Apellido:</label>
-                        <input type="text" class="form-control" id="nombre_apellido" name="nombre_apellido" required disabled>
+                        <input type="text" class="form-control" id="nombre_apellido" name="nombre_apellido" required readonly>
                     </div>
                     <div class="form-group">
                         <label for="direccion">Dirección:</label>
-                        <input type="text" class="form-control" id="direccion" name="direccion" disabled>
+                        <input type="text" class="form-control" id="direccion" name="direccion" readonly>
                     </div>
                     <div class="form-group">
                         <label for="telefono">Teléfono:</label>
@@ -73,10 +73,10 @@
                             name="telefono" 
                             maxlength="11" 
                             pattern="\d{9,11}" 
-                            title="Formato válido: 10 a 11 dígitos (por ejemplo: 9888877777)" 
+                            title="Formato válido: 9 a 11 dígitos (por ejemplo: 988887777)" 
                             placeholder="988887777" 
                             required
-                            disabled
+                            readonly
                         >
                     </div>
                     <div class="form-group">
@@ -89,7 +89,7 @@
                             placeholder="ejemplo@dominio.com" 
                             pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" 
                             required
-                            disabled
+                            readonly
                         >
                     </div>
                     
@@ -227,29 +227,29 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.existe) {
-                        // RUT existe, rellenar los campos y deshabilitarlos
+                        // RUT existe, rellenar los campos y marcarlos como solo lectura
                         document.getElementById('nombre_apellido').value = data.cliente.nombre_apellido;
                         document.getElementById('direccion').value = data.cliente.direccion;
                         document.getElementById('telefono').value = data.cliente.telefono;
                         document.getElementById('correo').value = data.cliente.correo;
 
-                        document.getElementById('nombre_apellido').disabled = true;
-                        document.getElementById('direccion').disabled = true;
-                        document.getElementById('telefono').disabled = true;
-                        document.getElementById('correo').disabled = true;
+                        document.getElementById('nombre_apellido').readOnly = true;
+                        document.getElementById('direccion').readOnly = true;
+                        document.getElementById('telefono').readOnly = true;
+                        document.getElementById('correo').readOnly = true;
                     } else {
-                        // RUT no existe, habilitar los campos para llenarlos manualmente
-                        alert("No existe, Continua!.");
+                        // RUT no existe, limpiar y habilitar los campos
+                        alert("No existe, ¡Continúa!");
 
                         document.getElementById('nombre_apellido').value = '';
                         document.getElementById('direccion').value = '';
                         document.getElementById('telefono').value = '';
                         document.getElementById('correo').value = '';
 
-                        document.getElementById('nombre_apellido').disabled = false;
-                        document.getElementById('direccion').disabled = false;
-                        document.getElementById('telefono').disabled = false;
-                        document.getElementById('correo').disabled = false;
+                        document.getElementById('nombre_apellido').readOnly = false;
+                        document.getElementById('direccion').readOnly = false;
+                        document.getElementById('telefono').readOnly = false;
+                        document.getElementById('correo').readOnly = false;
                     }
                 })
                 .catch(error => {
