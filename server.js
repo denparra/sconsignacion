@@ -524,7 +524,7 @@ app.post('/agregar-consignacion', isAuthenticated, (req, res) => {
                     const mailOptions = {
                         from: 'infoautorecente@gmail.com',
                         to: correo,  // Enviar al correo del cliente
-                        cc: ['dparra@queirolo.cl'],  // Correos en copia
+                        cc: ['dparra@queirolo.cl','mario@queirolo.cl','barbara.acosta@queirolo.cl','ksarria@queirolo.cl'],  // Correos en copia
                         subject: 'Confirmación de Consignación de su Vehículo',
                         text: `Buen día, estimado/a ${nombre_apellido}, Agradecemos sinceramente la confianza depositada en Queirolo Autos para gestionar la consignación de su vehículo. Nos complace informarle que su ${vehiculo} ${marca} ${modelo} ${anio} ha sido ingresado exitosamente en nuestro sistema y actualmente se encuentra en proceso de preparación para su pronta publicación en nuestras instalaciones.
 
