@@ -8,6 +8,10 @@
     <title>Login - Proyecto Consignación</title>
     <!-- Bootstrap CSS para estilos rápidos (opcional) -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <!-- Estilos globales -->
+    <link href="/public/styles.css" rel="stylesheet">
 </head>
 <body class="bg-light">
     <div class="container mt-5">
@@ -23,7 +27,7 @@
                                 <%= error[0] %>
                             </div>
                         <% } %>
-                        <form action="/login" method="POST">
+                        <form id="loginForm" action="/login" method="POST">
                             <div class="form-group">
                                 <label for="nombre_usuario">Nombre de Usuario</label>
                                 <input type="text" class="form-control" id="nombre_usuario" name="nombre_usuario" required>
@@ -43,5 +47,15 @@
     <!-- Bootstrap JS y dependencias (opcional) -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            const user = document.getElementById('nombre_usuario').value.trim();
+            const pass = document.getElementById('contrasena').value.trim();
+            if (!user || !pass) {
+                e.preventDefault();
+                alert('Ingrese usuario y contrase\u00f1a.');
+            }
+        });
+    </script>
 </body>
 </html>

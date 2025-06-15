@@ -7,6 +7,10 @@
 
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <!-- Estilos globales -->
+    <link href="/public/styles.css" rel="stylesheet">
 </head>
 <body>
  <!-- Navbar -->
@@ -256,6 +260,20 @@
                     console.error('Error al verificar el RUT:', error);
                     alert('Ocurrió un error al verificar el RUT. Inténtelo de nuevo.');
                 });
+            });
+
+            // Validar campos sin espacios vacíos al enviar el formulario
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                const requiredInputs = this.querySelectorAll('input[required], select[required]');
+                for (let input of requiredInputs) {
+                    if (!input.value.trim()) {
+                        e.preventDefault();
+                        alert('Por favor, complete todos los campos requeridos.');
+                        input.focus();
+                        break;
+                    }
+                }
             });
         });
     </script>
