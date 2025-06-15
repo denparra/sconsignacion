@@ -256,12 +256,12 @@ res.end(pdfBuffer);
     });
 });
 
-// Configurar Nodemailer
+// Configurar Nodemailer utilizando variables de entorno
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'infoautorecente@gmail.com',  // Tu correo
-        pass: 'yfpo kbpd egyh nehh',        // Contraseña de aplicación generada
+        user: process.env.GMAIL_USER,   // Correo configurado en .env
+        pass: process.env.GMAIL_PASS,   // Contraseña de aplicación
     },
 });
 
