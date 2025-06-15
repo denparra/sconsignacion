@@ -25,6 +25,10 @@ npm install
 npm start
 ```
 
+El archivo `server.js` únicamente arranca la aplicación expuesta en
+`src/app.js`, donde se encuentran configuradas las rutas y la lógica del
+servidor.
+
 ## Variables de entorno
 - `MYSQLHOST` – Host de la base de datos.
 - `MYSQLUSER` – Usuario MySQL.
