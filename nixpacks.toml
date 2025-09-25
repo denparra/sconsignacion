@@ -1,0 +1,8 @@
+[phases.build]
+nixPkgs = ["python3", "gcc", "make", "node-gyp"]
+
+[phases.install]
+cmds = ["npm ci --production=false"]
+
+[variables]
+NODE_ENV = "production"
